@@ -1,14 +1,19 @@
 from manim import *
+import math
 
-#manim test.py -pqm CreateCircle
-
-'''class Point:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+#manim test.py -pqm CreateCircl
     
-    points = [Point(1, 3, 0), Point(0, 2, 0), Point(0, 0, 0), Point(-3, 0, 0), Point(-1, -1, 0), Point(0, -3, 0), Point(1, -1, 0), Point(4, 0, 0),  Point(2, 1, 0)]'''
+points = [
+    [1, 3, 0], 
+    [0, 2, 0], 
+    [0, 0, 0], 
+    [-3, 0, 0], 
+    [-1, -1, 0], 
+    [0, -3, 0], 
+    [1, -1, 0], 
+    [4, 0, 0],  
+    [2, 1, 0],
+]
 
 class CreateCircle(Scene):
     def construct(self):
@@ -24,42 +29,110 @@ class CreateCircle(Scene):
         self.play(Transform(hexagon, circle))
         self.play(circle.animate.set_fill(DARK_BROWN, opacity = 1))
 
-''''def convexCheck(a:list, b:list):
-    check = 0 #-1 => smaller, 0 => equals, 1 => greater
-    if (a[0] == b[0]) :
-        for i in range(len(Point.points)):
-            if (Point.points[i].x < a.x):
+# For two points `a` and `b`, return True if the entire polygon is on one side
+# of the AB line. Otherwise, return False.
+def convexCheck(a: list, b: list) -> bool:
+
+    check = 0 # -1 => on left side, 0 => on the line, 1 => on the right side 
+    if (a[0] == b[0]):
+        
+        for p in points:
+
+            if (p[0] < a[0]):
+
                 if (check == 1):
                     return False
                 else:
                     check = -1
-            elif (Point.points[i].x > a.x):
+
+            elif (p[0] > a[0]):
+
                 if (check == -1):
                     return False
                 else:
                     check = 1
+
         return True 
+
     else:
-        m = (b.y - a.y) / (b.x - a.x) # y = mx + c
-        c = (b.x * a.y - a.x * b.y) / (b.x - a.x)
-        for i in range(len(Point.points)):
-            if (Point.points[i].y < math.floor(m * Point.points[i].x + c)):
+
+        m = (b[1] - a[1]) / (b[0] - a[0]) # slope
+        c = (b[0] * a[1] - a[0] * b[1]) / (b[0] - a[0]) # intercept
+        for p in points:
+
+            if (p[1] < math.floor(m * p[0] + c)): # floor due to float's inaccuracy
                 if (check == 1):
                     return False
                 else :
                     check = -1
-            elif (Point.points[i].y > math.ceil(m * Point.points[i].x + c)):
+
+            elif (p[1] > math.ceil(m * p[0] + c)): # ceil due to float's inaccuracy
                 if (check == -1):
                     return False
                 else:
                     check = 1
-        return True'''
+
+        return True
 
 class CreateConcavePolygon(Scene):
     def construct(self):
 
-        concave = Polygon(*Point.points, color = GREEN)
+        concave = Polygon(*points, color = GREEN)
         concave.set_fill(GREEN_B, opacity=0.75)
 
-        self.play(Create(concave), run_time = 3)
+        self.play(FadeIn(concave), run_time = 2)
+        self.wait(2)
+
+        # Point = list[float]
+        # hull_edges: list[Tuple[Point, Point]] = []
+        
+        # for i in range(len(points)-1):
+        #     for j in range(i+1, len(points)):
+        #         if convexCheck(points[i], points[j]):
+        #             hull_edges.append((points[i], points[j]))
+        
+        # hull_points = [hull_edges[0][0], hull_edges[0][1]]
+        # hull_edges.remove(hull_edges[0])
+
+        # while len(hull_edges) > 1:
+        #     for edge in hull_edges:
+        #         if edge[0] == hull_points[-1]:
+        #             hull_points.append(edge[1])
+        #             hull_edges.remove(edge)
+        #             break
+        #         elif edge[1] == hull_points[-1]:
+        #             hull_points.append(edge[0])
+        #             hull_edges.remove(edge)
+        #             break
+
+        # random boti code:
+        # hull_points: list[Point] = []
+        # if convexCheck(points[-1], points[1]):
+        #     hull_points += [points[-1], points[1]]
+        # else:
+        #     hull_points += [points[1]]
+        # for p in points[1:]:
+        #     if convexCheck(hull_points[-1], p):
+        #         hull_points.append(p)
+
+        #Random Dani code:
+        hull_points = []
+        first = False
+        for i in range(len(points)-1):
+            for j in range(i+1, len(points)):
+                if convexCheck(points[i], points[j]):
+                    if not first:
+                        hull_points.append(points[i])
+                        hull_points.append(points[j])
+                        i = j
+                        first = True
+                        continue
+                    else:
+                        hull_points.append(points[j])
+                        continue
+
+        hull = Polygon(*hull_points)
+        hull.set_stroke(RED_E, 5)
+
+        self.play(Create(hull))
         self.wait(10)
