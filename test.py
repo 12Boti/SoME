@@ -1,6 +1,9 @@
+from ast import Delete
 from manim import *
 import math
-#manim test.py Pith -pqm
+
+from matplotlib.pyplot import pink
+#manim test.py -pqm CreateCircle
 
 '''class Point:
     def __init__(self, x, y, z):
@@ -14,18 +17,15 @@ class CreateCircle(Scene):
     def construct(self):
 
         circle = Circle()  # create a circle
-        circle.set_fill(PINK, opacity=0.5)  # set the color and transparency
 
         hexagon = RegularPolygon(6)
         hexagon.set_fill(BLUE, opacity = 0.75)
         hexagon.set_stroke(GREEN, opacity = 1)
 
-        #hexagon.next_to(circle, RIGHT, buff =  0.5)
-
-        self.play(Create(circle), Create(hexagon))  # show the circle on screen
-
-        for i in range(10):
-            self.play(Rotate(hexagon, angle = PI), run_time = 5)
+        self.play(Create(hexagon)) 
+        self.play(Rotate(hexagon))
+        self.play(Transform(hexagon, circle))
+        self.play(circle.animate.set_fill(DARK_BROWN, opacity = 1))
 
 ''''def convexCheck(a:list, b:list):
     check = 0 #-1 => smaller, 0 => equals, 1 => greater
