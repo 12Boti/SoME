@@ -83,39 +83,7 @@ class CreateConcavePolygon(Scene):
         self.play(FadeIn(concave), run_time = 2)
         self.wait(2)
 
-        # Point = list[float]
-        # hull_edges: list[Tuple[Point, Point]] = []
-        
-        # for i in range(len(points)-1):
-        #     for j in range(i+1, len(points)):
-        #         if convexCheck(points[i], points[j]):
-        #             hull_edges.append((points[i], points[j]))
-        
-        # hull_points = [hull_edges[0][0], hull_edges[0][1]]
-        # hull_edges.remove(hull_edges[0])
-
-        # while len(hull_edges) > 1:
-        #     for edge in hull_edges:
-        #         if edge[0] == hull_points[-1]:
-        #             hull_points.append(edge[1])
-        #             hull_edges.remove(edge)
-        #             break
-        #         elif edge[1] == hull_points[-1]:
-        #             hull_points.append(edge[0])
-        #             hull_edges.remove(edge)
-        #             break
-
-        # random boti code:
-        # hull_points: list[Point] = []
-        # if convexCheck(points[-1], points[1]):
-        #     hull_points += [points[-1], points[1]]
-        # else:
-        #     hull_points += [points[1]]
-        # for p in points[1:]:
-        #     if convexCheck(hull_points[-1], p):
-        #         hull_points.append(p)
-
-        #Random Dani code:
+        # Dani code:
         hull_points = []
         first = False
         for i in range(len(points)-1):
