@@ -1,8 +1,5 @@
-from ast import Delete
 from manim import *
-import math
 
-from matplotlib.pyplot import pink
 #manim test.py -pqm CreateCircle
 
 '''class Point:
