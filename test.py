@@ -1,8 +1,11 @@
 from manim import *
 import math
 
-#manim test.py -pqm CreateCircl
-    
+from matplotlib import image
+
+#manim test.py -pqm CreateConcavePolygon
+
+#The points of the concave polygon
 points = [
     [1, 3, 0], 
     [0, 2, 0], 
@@ -55,52 +58,122 @@ def convexCheck(a: list, b: list) -> bool:
         return True 
 
     else:
-
-        m = (b[1] - a[1]) / (b[0] - a[0]) # slope
-        c = (b[0] * a[1] - a[0] * b[1]) / (b[0] - a[0]) # intercept
+        c = [a[0]-b[0], a[1]-b[1], a[2]-b[2]]
         for p in points:
-
-            if (p[1] < math.floor(m * p[0] + c)): # floor due to float's inaccuracy
+            d = [p[0]-b[0], p[1]-b[1], p[2]-b[2]]
+            if (c[0]*d[1] - c[1]*d[0] < 0): # cross product
                 if (check == 1):
                     return False
                 else :
                     check = -1
 
-            elif (p[1] > math.ceil(m * p[0] + c)): # ceil due to float's inaccuracy
+            elif c[0]*d[1] - c[1]*d[0] > 0:
                 if (check == -1):
                     return False
                 else:
                     check = 1
-
         return True
 
-class CreateConcavePolygon(Scene):
+#Flips between a and b points, sets the coordinates in the points list
+def flip(a: list, b: list):
+    if a[0] == b[0]:
+        while i % len(points) != points.index(b):
+
+            d = points[i % len(points)][0] - b[0] # distance
+            points[i % len(points)][0] += 2 * d
+
+            i += 1
+    else:
+        m = (b[1] - a[1]) / (b[0] - a[0]) # slope
+        c = (b[0] * a[1] - a[0] * b[1]) / (b[0] - a[0]) # intercept
+
+        i = points.index(a) + 1
+        while i % len(points) != points.index(b):
+
+            d = (points[i % len(points)][0] + (points[i % len(points)][1] - c) * m) / (1 + m * m) # distance
+
+            points[i % len(points)][0] = 2 * d - points[i % len(points)][0]
+            points[i % len(points)][1] = 2 * d * m - points[i % len(points)][1] + 2 * c
+
+            i += 1
+
+#Returns the points of the polygon defined by the 
+def getHullPoints(points: list) -> list:
+    
+   # Dani code:
+    hull_points = []
+    first = min(points)
+    first_index = points.index(first)
+    hull_points.append(points[first_index])
+    last = first_index
+    i = first_index + 1
+
+    while i != first_index:
+        if convexCheck(points[last], points[i]):
+           hull_points.append(points[i])
+           last = i
+        i = (i + 1)%len(points)
+
+    return hull_points
+
+#Calculates camera scale from the polygon's size
+def getCameraWidth(points: list) -> int:
+    
+    multiplyer = 3  # <- modify this to change scale multiplyer
+
+    return (max(points)[0] - min(points)[0]) * multiplyer
+
+def findFlip():
+    c = 2
+    i = 0
+    while c <= len(points) / 2:
+        while i <= len(points)-1:
+            if convexCheck(points[i], points[(i+c) % len(points)]):
+                flip(points[i], points[(i+c) % len(points)])
+
+                return True
+            i += 1
+        c += 1
+        i = 0
+    print("It's convex!")
+    return False
+        
+
+#Runned class, contains all animations
+class CreateConcavePolygon(MovingCameraScene):
     def construct(self):
 
-        concave = Polygon(*points, color = GREEN)
+        concave = Polygon(*points, color = GREEN) # Create Frank
         concave.set_fill(GREEN_B, opacity=0.75)
 
-        self.play(FadeIn(concave), run_time = 2)
+        self.play(FadeIn(concave), run_time = 2) # Show Frank on screen
         self.wait(2)
 
-        # Dani code:
-        hull_points = []
-        first = False
-        for i in range(len(points)-1):
-            for j in range(i+1, len(points)):
-                if convexCheck(points[i], points[j]):
-                    if not first:
-                        hull_points.append(points[i])
-                        hull_points.append(points[j])
-                        i = j
-                        first = True
-                        continue
-                    else:
-                        hull_points.append(points[j])
-                        continue
+        hull = Polygon(*getHullPoints(points)) # Create convex hull
+        hull.set_stroke(RED_C)
 
-        hull = Polygon(*hull_points)
-        hull.set_stroke(RED_E, 5)
+        self.play(Create(hull)) # show the hull on screen
+        self.wait(2)
 
-        self.play(Create(hull))
-        self.wait(10)
+        while findFlip():
+
+          flipped = Polygon(*points, color = GREEN)
+          flipped.set_fill(GREEN_B, opacity=0.75)
+
+          flipped_hull = Polygon(*getHullPoints(points))
+          flipped_hull.set_stroke(RED_C)
+
+          self.play(
+                Transform(concave, flipped),
+                Transform(hull, flipped_hull,), 
+              )
+          self.play(self.camera.frame.animate.move_to(flipped).set(width = getCameraWidth(points)))
+          self.wait(0.5)
+
+class Image(Scene):
+    def construct(self):
+        
+        image = ImageMobject("D:\Sebi\Árpád\matek\SoME\erdos.jpg")
+        image.height = 10
+        self.play(FadeIn(image))
+        self.wait(5)
