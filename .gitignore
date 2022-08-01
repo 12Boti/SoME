@@ -1,0 +1,7 @@
+/__pycache__/
+
+# manim outputs
+/media/
+
+# nix outputs
+result*
