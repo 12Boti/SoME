@@ -4,7 +4,7 @@ from functools import total_ordering
 from typing import Sequence, overload
 
 import manim.utils.color as colors  # type: ignore
-from manim import (  # type: ignore
+from manim import (
     Arrow,
     Create,
     DashedLine,
@@ -69,18 +69,18 @@ highlight_color = colors.RED
 def convexCheck(a: Point, b: Point, points: list[Point]) -> bool:
 
     check = 0  # -1 => on left side, 0 => on the line, 1 => on the right side
-    if a[0] == b[0]:
+    if a.x == b.x:
 
         for p in points:
 
-            if p[0] < a[0]:
+            if p.x < a.x:
 
                 if check == 1:
                     return False
                 else:
                     check = -1
 
-            elif p[0] > a[0]:
+            elif p.x > a.x:
 
                 if check == -1:
                     return False
@@ -90,16 +90,16 @@ def convexCheck(a: Point, b: Point, points: list[Point]) -> bool:
         return True
 
     else:
-        c = [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+        c = Point(a.x - b.x, a.y - b.y, a.z - b.z)
         for p in points:
-            d = [p[0] - b[0], p[1] - b[1], p[2] - b[2]]
-            if c[0] * d[1] - c[1] * d[0] < 0:  # cross product
+            d = Point(p.x - b.x, p.y - b.y, p.z - b.z)
+            if c.x * d.y - c.y * d.x < 0:  # cross product
                 if check == 1:
                     return False
                 else:
                     check = -1
 
-            elif c[0] * d[1] - c[1] * d[0] > 0:
+            elif c.x * d.y - c.y * d.x > 0:
                 if check == -1:
                     return False
                 else:
@@ -111,25 +111,25 @@ def convexCheck(a: Point, b: Point, points: list[Point]) -> bool:
 def flip(a: Point, b: Point, points: list[Point]) -> None:
     i = points.index(a) + 1
 
-    if a[0] == b[0]:
+    if a.x == b.x:
         while i % len(points) != points.index(b):
 
-            d = points[i % len(points)][0] - b[0]  # distance
-            points[i % len(points)][0] += 2 * d
+            d = points[i % len(points)].x - b.x  # distance
+            points[i % len(points)].x += 2 * d
 
             i += 1
     else:
-        m = (b[1] - a[1]) / (b[0] - a[0])  # slope
-        c = (b[0] * a[1] - a[0] * b[1]) / (b[0] - a[0])  # intercept
+        m = (b.y - a.y) / (b.x - a.x)  # slope
+        c = (b.x * a.y - a.x * b.y) / (b.x - a.x)  # intercept
 
         while i % len(points) != points.index(b):
 
-            d = (points[i % len(points)][0] + (points[i % len(points)][1] - c) * m) / (
+            d = (points[i % len(points)].x + (points[i % len(points)].y - c) * m) / (
                 1 + m * m
             )  # distance
 
-            points[i % len(points)][0] = 2 * d - points[i % len(points)][0]
-            points[i % len(points)][1] = 2 * d * m - points[i % len(points)][1] + 2 * c
+            points[i % len(points)].x = 2 * d - points[i % len(points)].x
+            points[i % len(points)].y = 2 * d * m - points[i % len(points)].y + 2 * c
 
             i += 1
 
@@ -140,15 +140,15 @@ def projectPointsOnLine(a: int, b: int, points: list[Point]) -> list[Point]:
     if a > b:
         c = b + len(points)
     result = []
-    v1 = [
-        points[a][0] - points[b][0],
-        points[a][1] - points[b][1],
-        points[a][2] - points[b][2],
-    ]
-    v1Length = math.sqrt(v1[0] ** 2 + v1[1] ** 2 + v1[2] ** 2)
+    v1 = Point(
+        points[a].x - points[b].x,
+        points[a].y - points[b].y,
+        points[a].z - points[b].z,
+    )
+    v1Length = math.sqrt(v1.x**2 + v1.y**2 + v1.z**2)
     for p in (points * 2)[a + 1 : c]:
-        v2 = [p[0] - points[b][0], p[1] - points[b][1], p[2] - points[b][2]]
-        dotProduct = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
+        v2 = Point(p.x - points[b].x, p.y - points[b].y, p.z - points[b].z)
+        dotProduct = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
         lengthfactor = dotProduct / (v1Length**2)
         if lengthfactor < 0:
             lengthfactor = 0
@@ -189,7 +189,7 @@ def getCameraWidth(points: list[Point]) -> float:
 
     multiplier = 2  # <- modify this to change scale
 
-    return (max(points)[0] - min(points)[0]) * multiplier
+    return (max(points).x - min(points).x) * multiplier
 
 
 # Finds a flip and executes it, and returns whether the polygon is concave after the flip
