@@ -51,6 +51,8 @@ def convexCheck(a: list, b: list, points) -> bool:
 
 # Flips between a and b points, sets the coordinates in the points list
 def flip(a: list, b: list, points):
+    i = points.index(a) + 1
+
     if a[0] == b[0]:
         while i % len(points) != points.index(b):
 
@@ -62,7 +64,6 @@ def flip(a: list, b: list, points):
         m = (b[1] - a[1]) / (b[0] - a[0])  # slope
         c = (b[0] * a[1] - a[0] * b[1]) / (b[0] - a[0])  # intercept
 
-        i = points.index(a) + 1
         while i % len(points) != points.index(b):
 
             d = (points[i % len(points)][0] + (points[i % len(points)][1] - c) * m) / (
