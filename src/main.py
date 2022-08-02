@@ -1,14 +1,72 @@
-from manim import *
 import math
+from dataclasses import dataclass
+from functools import total_ordering
+from typing import Sequence, overload
 
-fill_color = BLUE_D
-stroke_color = BLUE_E
-hull_color = PURE_RED
-highlight_color = RED
+import manim.utils.color as colors  # type: ignore
+from manim import (  # type: ignore
+    Arrow,
+    Create,
+    DashedLine,
+    FadeIn,
+    FadeOut,
+    ImageMobject,
+    Line,
+    MovingCameraScene,
+    Polygon,
+    ReplacementTransform,
+    Restore,
+    Scene,
+    ShowPassingFlash,
+    Transform,
+    Uncreate,
+    VGroup,
+)
+
+
+@dataclass
+@total_ordering
+class Point(Sequence[float]):
+    x: float
+    y: float
+    z: float
+
+    @overload
+    def __getitem__(self, i: int) -> float:
+        pass
+
+    @overload
+    def __getitem__(self, i: slice) -> Sequence[float]:
+        pass
+
+    def __getitem__(self, i: int | slice) -> float | Sequence[float]:
+        return [self.x, self.y, self.z][i]
+
+    def __len__(self) -> int:
+        return 3
+
+    def __setitem__(self, i: int, v: float) -> None:
+        if i == 0:
+            self.x = v
+        elif i == 1:
+            self.y = v
+        elif i == 2:
+            self.z = v
+        else:
+            raise KeyError()
+
+    def __lt__(self, other: "Point") -> bool:
+        return [self.x, self.y, self.z] < [other.x, other.y, other.z]
+
+
+fill_color = colors.BLUE_D
+stroke_color = colors.BLUE_E
+hull_color = colors.PURE_RED
+highlight_color = colors.RED
 
 # For two points `a` and `b`, return True if the entire polygon is on one side
 # of the AB line. Otherwise, return False.
-def convexCheck(a: list, b: list, points) -> bool:
+def convexCheck(a: Point, b: Point, points: list[Point]) -> bool:
 
     check = 0  # -1 => on left side, 0 => on the line, 1 => on the right side
     if a[0] == b[0]:
@@ -50,7 +108,7 @@ def convexCheck(a: list, b: list, points) -> bool:
 
 
 # Flips between a and b points, sets the coordinates in the points list
-def flip(a: list, b: list, points):
+def flip(a: Point, b: Point, points: list[Point]) -> None:
     i = points.index(a) + 1
 
     if a[0] == b[0]:
@@ -77,7 +135,7 @@ def flip(a: list, b: list, points):
 
 
 # Project points in `points` between the indices a and b on the line defined by the point a and b
-def projectPointsOnLine(a: int, b: int, points) -> list:
+def projectPointsOnLine(a: int, b: int, points: list[Point]) -> list[Point]:
     c = b
     if a > b:
         c = b + len(points)
@@ -97,16 +155,16 @@ def projectPointsOnLine(a: int, b: int, points) -> list:
         elif lengthfactor > 1:
             lengthfactor = 1
         projectedP = [x * lengthfactor + y for x, y in zip(v1, points[b])]
-        result.append(projectedP)
+        result.append(Point(*projectedP))
     return result
 
 
-def rotateList(l: list, first_index: int) -> list:
+def rotateList(l: list[Point], first_index: int) -> list[Point]:
     return l[first_index:] + l[:first_index]
 
 
-# Returns the points of the convex hull of the polygon defined by the given list (it must be list[list[3]])
-def getHullPoints(points: list) -> list:
+# Returns the points of the convex hull of the polygon defined by the given list
+def getHullPoints(points: list[Point]) -> list[Point]:
 
     hull_points = []
     first = min(points)
@@ -127,15 +185,15 @@ def getHullPoints(points: list) -> list:
 
 
 # Calculates camera scale from the polygon's size
-def getCameraWidth(points) -> int:
+def getCameraWidth(points: list[Point]) -> float:
 
     multiplier = 2  # <- modify this to change scale
 
     return (max(points)[0] - min(points)[0]) * multiplier
 
 
-# Finds a flip and executes it, and checks wether the polygon is convex after the flip
-def findFlip(points):
+# Finds a flip and executes it, and returns whether the polygon is concave after the flip
+def findFlip(points: list[Point]) -> bool:
     c = 2
     i = 0
     while c <= len(points) / 2:
@@ -152,7 +210,7 @@ def findFlip(points):
 
 
 # Generates dashed lines between the given points, returns the lines in a VGroup
-def generateDashedLines(points):
+def generateDashedLines(points: list[Point]) -> VGroup:
 
     storage = []
 
@@ -162,30 +220,25 @@ def generateDashedLines(points):
     return VGroup(*storage)
 
 
-# Finds the midpoint of the line defind by a and b points
-def findMidPoint(a: list, b: list) -> list:
-    result = []
-
-    for i in range(3):
-        result.append((a[i] + b[i]) / 2)
-
-    return result
+# Finds the midpoint of the line segment defind by a and b points
+def findMidPoint(a: Point, b: Point) -> Point:
+    return Point(*((c + d) / 2 for c, d in zip(a, b)))
 
 
-# Runned class, contains all animations
-class CreateConcavePolygon(MovingCameraScene):
-    def construct(self):
+# Main class, contains all animations
+class CreateConcavePolygon(MovingCameraScene):  # type: ignore
+    def construct(self) -> None:
         # The points of the concave polygon
         Frank_points = [
-            [1, 3, 0],
-            [0, 2, 0],
-            [0, 0, 0],
-            [-3, 0, 0],
-            [-1, -1, 0],
-            [0, -3, 0],
-            [1, -1, 0],
-            [4, 0, 0],
-            [2, 1, 0],
+            Point(1, 3, 0),
+            Point(0, 2, 0),
+            Point(0, 0, 0),
+            Point(-3, 0, 0),
+            Point(-1, -1, 0),
+            Point(0, -3, 0),
+            Point(1, -1, 0),
+            Point(4, 0, 0),
+            Point(2, 1, 0),
         ]
 
         concave = Polygon(*Frank_points, color=stroke_color)  # Create Frank
@@ -201,15 +254,15 @@ class CreateConcavePolygon(MovingCameraScene):
         self.wait(2)
 
         convex_frank = [  # The points of deformed Frank
-            [1, 3, 0],
-            [0, 3, 0],
-            [-2, 1.5, 0],
-            [-3, 0, 0],
-            [-2.5, -2, 0],
-            [0, -3, 0],
-            [3.5, -3, 0],
-            [4, 0, 0],
-            [3, 2.5, 0],
+            Point(1, 3, 0),
+            Point(0, 3, 0),
+            Point(-2, 1.5, 0),
+            Point(-3, 0, 0),
+            Point(-2.5, -2, 0),
+            Point(0, -3, 0),
+            Point(3.5, -3, 0),
+            Point(4, 0, 0),
+            Point(3, 2.5, 0),
         ]
 
         wrong_convex = Polygon(
@@ -247,16 +300,16 @@ class CreateConcavePolygon(MovingCameraScene):
         self.wait(1)
 
         Frank_2_points = [  # Define the points for Frank 2
-            [0, 4, 0],
-            [-1, 0, 0],
-            [-1, 2, 0],
-            [-2, 3, 0],
-            [-3, 1, 0],
-            [-1, -1, 0],
-            [-5, -1, 0],
-            [-3, -2, 0],
-            [2, 0, 0],
-            [0, 1, 0],
+            Point(0, 4, 0),
+            Point(-1, 0, 0),
+            Point(-1, 2, 0),
+            Point(-2, 3, 0),
+            Point(-3, 1, 0),
+            Point(-1, -1, 0),
+            Point(-5, -1, 0),
+            Point(-3, -2, 0),
+            Point(2, 0, 0),
+            Point(0, 1, 0),
         ]
 
         # flip(points[0], points[4])  # Flip randomly
@@ -308,16 +361,16 @@ class CreateConcavePolygon(MovingCameraScene):
             )  # Adjust camera size and position
 
         Frank_2_points = [  # Reset Frank 2
-            [0, 4, 0],
-            [-1, 0, 0],
-            [-1, 2, 0],
-            [-2, 3, 0],
-            [-3, 1, 0],
-            [-1, -1, 0],
-            [-5, -1, 0],
-            [-3, -2, 0],
-            [2, 0, 0],
-            [0, 1, 0],
+            Point(0, 4, 0),
+            Point(-1, 0, 0),
+            Point(-1, 2, 0),
+            Point(-2, 3, 0),
+            Point(-3, 1, 0),
+            Point(-1, -1, 0),
+            Point(-5, -1, 0),
+            Point(-3, -2, 0),
+            Point(2, 0, 0),
+            Point(0, 1, 0),
         ]
 
         self.play(Uncreate(hull), Restore(concave))
@@ -362,10 +415,10 @@ class CreateConcavePolygon(MovingCameraScene):
         self.wait(2)
 
 
-class Image(Scene):
-    def construct(self):
+class Image(Scene):  # type: ignore
+    def construct(self) -> None:
 
-        image = ImageMobject("D:\Sebi\Árpád\matek\SoME\erdos.jpg")
+        image = ImageMobject(r"D:\Sebi\Árpád\matek\SoME\erdos.jpg")
         image.height = 10
         self.play(FadeIn(image))
         self.wait(5)

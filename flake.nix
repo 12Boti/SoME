@@ -19,9 +19,12 @@
       inherit (devshell.legacyPackages.${system}) mkShell;
       inherit (mach-nix.lib.${system}) mkPython;
       python = mkPython {
+        python = "python310";
         requirements = ''
           manim
           matplotlib
+          mypy
+          shed
         '';
         _.click-default-group.src = pkgs.fetchFromGitHub {
           owner = "click-contrib";
