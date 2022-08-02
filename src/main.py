@@ -76,7 +76,7 @@ def flip(a: list, b: list, points):
             i += 1
 
 
-# Project points in the array 'point' between the indecies a and b on the line defined by the point a and b
+# Project points in `points` between the indices a and b on the line defined by the point a and b
 def projectPointsOnLine(a: int, b: int, points) -> list:
     c = b
     if a > b:
@@ -129,9 +129,9 @@ def getHullPoints(points: list) -> list:
 # Calculates camera scale from the polygon's size
 def getCameraWidth(points) -> int:
 
-    multiplyer = 2  # <- modify this to change scale multiplyer
+    multiplier = 2  # <- modify this to change scale
 
-    return (max(points)[0] - min(points)[0]) * multiplyer
+    return (max(points)[0] - min(points)[0]) * multiplier
 
 
 # Finds a flip and executes it, and checks wether the polygon is convex after the flip
@@ -333,7 +333,7 @@ class CreateConcavePolygon(MovingCameraScene):
                 run_time=2,
                 time_width=1,
             )
-        )  # Highligh Frank 2's perimiter
+        )  # Highligh Frank 2's perimeter
         self.wait(2)
 
         prev_line_a = Line(Frank_2_points[0], Frank_2_points[9], color=highlight_color)
