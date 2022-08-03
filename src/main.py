@@ -1,3 +1,4 @@
+from audioop import reverse
 import math
 from dataclasses import dataclass
 from functools import total_ordering
@@ -25,7 +26,9 @@ from manim import (
     Uncreate,
     VGroup,
     CurvedArrow,
-    VMobject
+    VMobject,
+    Rotate,
+    PI,
 )
 
 
@@ -271,6 +274,39 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(Restore(concave))  # Deformed Frank -> Frank
 
 
+        # --- Demonstrate flip ---
+        self.play(
+            self.camera.frame.animate.move_to([2.5, 1.5, 0.0]).set(
+                width=10
+            )
+        )
+        axis = Line(Frank_points[0], Frank_points[7], color=colors.RED)
+        self.play(Create(axis))
+        orig = deepcopy(Frank_points[8])
+        flip(Frank_points[7], Frank_points[0], Frank_points)
+        dashed = DashedLine(orig, Frank_points[8], color=colors.RED)
+        self.play(Create(dashed))
+        dot = Dot(Frank_points[8], color=colors.RED)
+        self.add(dot)
+        #self.play(Rotate(dashed, angle=0, run_time=0)) #To do fix: wtf Calling this function somehow reverses the animation of uncreate. (As it turns out each dash uncreates in the wrong direction.)
+        #self.play(Uncreate(axis, run_time=0))
+        axis2 = Line(Frank_points[0], Frank_points[7], color=colors.RED)
+        flipped = Polygon(*Frank_points, color=stroke_color)
+        flipped.set_fill(fill_color, opacity=0.75)
+        self.play(
+            manim.AnimationGroup(
+                Uncreate(axis, run_time=0),
+                Create(axis2, run_time=0.00000000000000001, rate_func=manim.rate_functions.linear), #I don't konw why this works but OH MY GOD this took way too long!
+                Uncreate(dashed, run_time=1, reverse = False, rate_func=manim.rate_functions.linear), #New discovery: If the uncreate's rate function is not specified, then even though the transfrom's rate function is set to linear it will be smooth.
+                Transform(concave, flipped, run_time=1, rate_func=manim.rate_functions.linear),
+                lag_ratio=0.05,
+            )
+        )
+        self.remove(dot)
+        self.play(Uncreate(axis2))
+        return
+
+
         # --- Flip Frank, killing him ---
         flip(Frank_points[0], Frank_points[4], Frank_points)  # Flip randonly
 
@@ -369,7 +405,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             self.camera.frame.animate.move_to(concave).set(
                 width=getCameraWidth(Frank_2_points)
             )
-        )  # Adjust camera size and position
+        )
 
 
         # --- Show that perimeter is constant ---
