@@ -233,7 +233,7 @@ def findMidPoint(a: Point, b: Point) -> Point:
 # Main class, contains all animations
 class CreateConcavePolygon(MovingCameraScene):  # type: ignore
     def construct(self) -> None:
-        # The points of the concave polygon
+        # --- Create Frank ---
         Frank_points = [
             Point(1, 3, 0),
             Point(0, 2, 0),
@@ -246,19 +246,13 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Point(2, 1, 0),
         ]
 
-        concave = Polygon(*Frank_points, color=stroke_color)  # Create Frank
+        concave = Polygon(*Frank_points, color=stroke_color)
         concave.set_fill(fill_color, opacity=0.75)
         concave.save_state()
-
-        self.play(
-            self.camera.frame.animate.move_to(concave).set(
-                width=getCameraWidth(Frank_points)
-            )
-        )  # Adjust camera size and position
-        self.play(FadeIn(concave), run_time=2)  # Show Frank on screen
+        self.play(FadeIn(concave), run_time=2)
         self.wait(2)
 
-        convex_frank = [  # The points of deformed Frank
+        convex_frank = [
             Point(1, 3, 0),
             Point(0, 3, 0),
             Point(-2, 1.5, 0),
@@ -270,16 +264,9 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Point(3, 2.5, 0),
         ]
 
-        wrong_convex = Polygon(
-            *convex_frank, color=stroke_color
-        )  # Create Deformed Frank
+        wrong_convex = Polygon(*convex_frank, color=stroke_color)
         wrong_convex.set_fill(fill_color, opacity=0.75)
 
-        self.play(
-            self.camera.frame.animate.move_to(wrong_convex).set(
-                width=getCameraWidth(Frank_points)
-            )
-        )  # Adjust camera size and position
         self.play(Transform(concave, wrong_convex))  # Frank -> Deformed Frank
         self.wait(3)
         self.play(Restore(concave))  # Deformed Frank -> Frank
@@ -339,6 +326,12 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(Create(hull))  # show the hull on screen
         self.wait(2)
 
+        self.play(
+            self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(
+                width=22
+            )
+        )  # Adjust camera size and position
+
         # automatcally convexifies the polygon
         while findFlip(Frank_2_points):
 
@@ -359,11 +352,10 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                     flipped_hull,
                 ),
             )
-            self.play(
-                self.camera.frame.animate.move_to(flipped).set(
-                    width=getCameraWidth(Frank_2_points)
-                )
-            )  # Adjust camera size and position
+        # boti version
+        print([sum(p[c] for p in Frank_2_points)/len(Frank_2_points) for c in [0,1,2]])
+        print(getCameraWidth(Frank_2_points))
+        #Side calculation^
 
         Frank_2_points = [  # Reset Frank 2
             Point(0, 4, 0),
