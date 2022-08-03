@@ -1,13 +1,16 @@
 import math
 from dataclasses import dataclass
 from functools import total_ordering
-from typing import Sequence, overload
+from typing import Sequence, overload, Union
+from copy import deepcopy
 
 import manim.utils.color as colors  # type: ignore
+import manim
 from manim import (
     Arrow,
     Create,
     DashedLine,
+    Dot,
     FadeIn,
     FadeOut,
     ImageMobject,
@@ -21,6 +24,8 @@ from manim import (
     Transform,
     Uncreate,
     VGroup,
+    CurvedArrow,
+    VMobject
 )
 
 
@@ -39,7 +44,7 @@ class Point(Sequence[float]):
     def __getitem__(self, i: slice) -> Sequence[float]:
         pass
 
-    def __getitem__(self, i: int | slice) -> float | Sequence[float]:
+    def __getitem__(self, i: Union[int, slice]) -> Union[float, Sequence[float]]:
         return [self.x, self.y, self.z][i]
 
     def __len__(self) -> int:
@@ -389,29 +394,35 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )  # Highligh Frank 2's perimeter
         self.wait(2)
 
-        prev_line_a = Line(Frank_2_points[0], Frank_2_points[9], color=highlight_color)
-        prev_line_b = Line(Frank_2_points[9], Frank_2_points[8], color=highlight_color)
-        point_before_flip = Frank_2_points[9]
+        prev_lines = VMobject(color=highlight_color).set_points_as_corners([
+            Frank_2_points[0],
+            Frank_2_points[9],
+            Frank_2_points[8],
+        ])
+        point_before_flip = deepcopy(Frank_2_points[9])
 
         flip(Frank_2_points[8], Frank_2_points[0], Frank_2_points)
 
         flipped = Polygon(*Frank_2_points, color=stroke_color)
         flipped.set_fill(fill_color, opacity=0.75)
 
-        self.play(Transform(concave, flipped), Create(prev_line_a), Create(prev_line_b))
+        self.play(Create(prev_lines))
         self.wait(1)
+        self.play(Transform(concave, flipped))
 
-        arrow_a = Arrow(
+        arrow_a = CurvedArrow(
             findMidPoint(Frank_2_points[0], point_before_flip),
             findMidPoint(Frank_2_points[0], Frank_2_points[9]),
             color=highlight_color,
         )
-        arrow_b = Arrow(
+        arrow_b = CurvedArrow(
             findMidPoint(point_before_flip, Frank_2_points[8]),
             findMidPoint(Frank_2_points[8], Frank_2_points[9]),
+            radius=-1,
             color=highlight_color,
         )
-        self.play(Create(arrow_a), Create(arrow_b))
+        self.play(Create(arrow_a))
+        self.play(Create(arrow_b))
         self.wait(2)
 
 
