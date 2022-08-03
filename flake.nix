@@ -13,7 +13,7 @@
     , mach-nix
     , devshell
     }:
-    flake-utils.lib.eachDefaultSystem (system:
+    flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
       inherit (devshell.legacyPackages.${system}) mkShell;
