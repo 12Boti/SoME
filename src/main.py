@@ -245,13 +245,14 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Point(4, 0, 0),
             Point(2, 1, 0),
         ]
-
         concave = Polygon(*Frank_points, color=stroke_color)
         concave.set_fill(fill_color, opacity=0.75)
         concave.save_state()
         self.play(FadeIn(concave), run_time=2)
         self.wait(2)
 
+
+        # --- Dragging Frank's points to make him convex (Cheating) ---
         convex_frank = [
             Point(1, 3, 0),
             Point(0, 3, 0),
@@ -263,34 +264,33 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Point(4, 0, 0),
             Point(3, 2.5, 0),
         ]
-
         wrong_convex = Polygon(*convex_frank, color=stroke_color)
         wrong_convex.set_fill(fill_color, opacity=0.75)
-
         self.play(Transform(concave, wrong_convex))  # Frank -> Deformed Frank
         self.wait(3)
         self.play(Restore(concave))  # Deformed Frank -> Frank
 
+
+        # --- Flip Frank, killing him ---
         flip(Frank_points[0], Frank_points[4], Frank_points)  # Flip randonly
 
         self_intersect = Polygon(
             *Frank_points, color=stroke_color
         )  # Create self-intersecting "polygon"
         self_intersect.set_fill(fill_color, opacity=0.75)
-
         self.play(Transform(concave, self_intersect))  # Execute flip
         self.wait(0.5)
-
         dashed = generateDashedLines(
             Frank_points
         )  # Generate dashed outline of the filpped polygon
         self.play(
             ReplacementTransform(concave, dashed)
         )  # Show dashed oultine (probably buggy, but looks cool)
-
         self.play(FadeOut(dashed))  # Fade out dashed outline
         self.wait(1)
 
+
+        # --- Create Frank2 ---
         Frank_2_points = [  # Define the points for Frank 2
             Point(0, 4, 0),
             Point(-1, 0, 0),
@@ -303,61 +303,56 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Point(2, 0, 0),
             Point(0, 1, 0),
         ]
-
-        # flip(points[0], points[4])  # Flip randomly
-
         concave = Polygon(*Frank_2_points, color=stroke_color)  # Create Frank 2
         concave.set_fill(fill_color, opacity=0.75)
         concave.save_state()
-
         copy_of_frank_2 = Polygon(*Frank_2_points, color=highlight_color)
-
         self.play(
             self.camera.frame.animate.move_to(concave).set(
                 width=getCameraWidth(Frank_2_points)
             )
-        )  # Adjust camera size and position
+        )
         self.play(Create(concave))  # Show Frank 2
 
-        hull = Polygon(*getHullPoints(Frank_2_points))  # Create convex hull
+
+        # --- Create Frank2's hull ---
+        hull = Polygon(*getHullPoints(Frank_2_points))
         hull.set_stroke(hull_color)
         self.bring_to_front(hull)  # Put the hull in front of the polygon
-
-        self.play(Create(hull))  # show the hull on screen
+        self.play(Create(hull))
         self.wait(2)
-
         self.play(
             self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(
                 width=22
             )
-        )  # Adjust camera size and position
+        )
 
-        # automatcally convexifies the polygon
+        # --- Automatically convexifies Frank2 ---
         while findFlip(Frank_2_points):
 
+            # Create the polygon after the flip
             flipped = Polygon(
                 *Frank_2_points, color=stroke_color
-            )  # Create the polygon after the flip
+            )
             flipped.set_fill(fill_color, opacity=0.75)
 
+            # Recalculate the hull after the flip
             flipped_hull = Polygon(
                 *getHullPoints(Frank_2_points)
-            )  # Recalculate the hull after the flip
+            )
             flipped_hull.set_stroke(hull_color)
 
-            self.play(  # Show the flip
+            self.play(
                 Transform(concave, flipped),
                 Transform(
                     hull,
                     flipped_hull,
                 ),
             )
-        # boti version
-        print([sum(p[c] for p in Frank_2_points)/len(Frank_2_points) for c in [0,1,2]])
-        print(getCameraWidth(Frank_2_points))
-        #Side calculation^
 
-        Frank_2_points = [  # Reset Frank 2
+
+        # --- Reset Frank 2 ---
+        Frank_2_points = [
             Point(0, 4, 0),
             Point(-1, 0, 0),
             Point(-1, 2, 0),
@@ -369,7 +364,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Point(2, 0, 0),
             Point(0, 1, 0),
         ]
-
         self.play(Uncreate(hull), Restore(concave))
         self.play(
             self.camera.frame.animate.move_to(concave).set(
@@ -377,31 +371,28 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             )
         )  # Adjust camera size and position
 
+
+        # --- Show that perimeter is constant ---
         self.play(
             ShowPassingFlash(
                 copy_of_frank_2.copy().set_color(highlight_color),
                 run_time=2,
                 time_width=1,
             )
-        )  # Highligh Frank 2's perimeter
+        )  
         self.wait(2)
-
         prev_lines = VMobject(color=highlight_color).set_points_as_corners([
             Frank_2_points[0],
             Frank_2_points[9],
             Frank_2_points[8],
         ])
         point_before_flip = deepcopy(Frank_2_points[9])
-
         flip(Frank_2_points[8], Frank_2_points[0], Frank_2_points)
-
         flipped = Polygon(*Frank_2_points, color=stroke_color)
         flipped.set_fill(fill_color, opacity=0.75)
-
         self.play(Create(prev_lines))
         self.wait(1)
         self.play(Transform(concave, flipped))
-
         arrow_a = CurvedArrow(
             findMidPoint(Frank_2_points[0], point_before_flip),
             findMidPoint(Frank_2_points[0], Frank_2_points[9]),
