@@ -296,7 +296,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(
             manim.AnimationGroup(
                 Uncreate(axis, run_time=0),
-                Create(axis2, run_time=0.00000000000000001, rate_func=manim.rate_functions.linear), #I don't konw why this works but OH MY GOD this took way too long!
+                Create(axis2, run_time=0.00000000000000001, rate_func=manim.rate_functions.linear), #Bring axis to front. I don't konw why this works but OH MY GOD this took way too long! (these attempts failed: self.bring_to_front(axis), self.bring_to_back(concave), changing the z coordinates)
                 Uncreate(dashed, run_time=1, reverse = False, rate_func=manim.rate_functions.linear), #New discovery: If the uncreate's rate function is not specified, then even though the transfrom's rate function is set to linear it will be smooth.
                 Transform(concave, flipped, run_time=1, rate_func=manim.rate_functions.linear),
                 lag_ratio=0.05,
@@ -304,8 +304,11 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )
         self.remove(dot)
         self.play(Uncreate(axis2))
-        return
-
+        self.play(
+            self.camera.frame.animate.move_to([0, 0, 0.0]).set(
+                width=14
+            )
+        )
 
         # --- Flip Frank, killing him ---
         flip(Frank_points[0], Frank_points[4], Frank_points)  # Flip randonly
