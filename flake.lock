@@ -68,7 +68,9 @@
       "inputs": {
         "flake-utils": "flake-utils_3",
         "nixpkgs": "nixpkgs_2",
-        "pypi-deps-db": "pypi-deps-db"
+        "pypi-deps-db": [
+          "pypi-deps-db"
+        ]
       },
       "locked": {
         "lastModified": 1659091740,
@@ -132,11 +134,11 @@
     "pypi-deps-db": {
       "flake": false,
       "locked": {
-        "lastModified": 1643877077,
-        "narHash": "sha256-jv8pIvRFTP919GybOxXE5TfOkrjTbdo9QiCO1TD3ZaY=",
+        "lastModified": 1659602076,
+        "narHash": "sha256-064jtXYhtPfhCgf8D4bBFc7TwdnuyS2rr4N2DiV8qNE=",
         "owner": "DavHau",
         "repo": "pypi-deps-db",
-        "rev": "da53397f0b782b0b18deb72ef8e0fb5aa7c98aa3",
+        "rev": "cf8dac721cafa6eb1576b29eff86c6c46a8077fe",
         "type": "github"
       },
       "original": {
@@ -150,7 +152,8 @@
         "devshell": "devshell",
         "flake-utils": "flake-utils_2",
         "mach-nix": "mach-nix",
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_3",
+        "pypi-deps-db": "pypi-deps-db"
       }
     }
   },

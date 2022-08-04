@@ -2,8 +2,15 @@
   inputs = {
     # nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
     flake-utils.url = "github:numtide/flake-utils";
-    mach-nix.url = "github:DavHau/mach-nix";
     devshell.url = "github:numtide/devshell";
+    mach-nix = {
+      url = "github:DavHau/mach-nix";
+      inputs.pypi-deps-db.follows = "pypi-deps-db";
+    };
+    pypi-deps-db = {
+      url = "github:DavHau/pypi-deps-db";
+      flake = false;
+    };
   };
 
   outputs =
@@ -12,6 +19,7 @@
     , flake-utils
     , mach-nix
     , devshell
+    , pypi-deps-db
     }:
     flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
     let
@@ -25,6 +33,7 @@
           matplotlib
           mypy
           shed
+          setuptools
         '';
         _.click-default-group.src = pkgs.fetchFromGitHub {
           owner = "click-contrib";
