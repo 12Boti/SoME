@@ -7,6 +7,7 @@ from typing import Sequence, Union, overload
 import manim  # type: ignore
 import manim.utils.color as colors  # type: ignore
 from manim import (
+    ArcPolygon,
     Create,
     CurvedArrow,
     DashedLine,
@@ -145,20 +146,22 @@ def projectPointsOnLine(a: int, b: int, points: list[Point]) -> list[Point]:
         c = b + len(points)
     result = []
     v1 = Point(
-        points[a].x - points[b].x,
-        points[a].y - points[b].y,
-        points[a].z - points[b].z,
+        points[b].x - points[a].x,
+        points[b].y - points[a].y,
+        points[b].z - points[a].z,
     )
     v1Length = math.sqrt(v1.x**2 + v1.y**2 + v1.z**2)
+    prev_lengthfactor = 0.0
     for p in (points * 2)[a + 1 : c]:
-        v2 = Point(p.x - points[b].x, p.y - points[b].y, p.z - points[b].z)
+        v2 = Point(p.x - points[a].x, p.y - points[a].y, p.z - points[a].z)
         dotProduct = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
         lengthfactor = dotProduct / (v1Length**2)
-        if lengthfactor < 0:
-            lengthfactor = 0
+        if lengthfactor < prev_lengthfactor:
+            lengthfactor = prev_lengthfactor
         elif lengthfactor > 1:
             lengthfactor = 1
-        projectedP = [x * lengthfactor + y for x, y in zip(v1, points[b])]
+        prev_lengthfactor = lengthfactor
+        projectedP = [x * lengthfactor + y for x, y in zip(v1, points[a])]
         result.append(Point(*projectedP))
     return result
 
@@ -353,12 +356,27 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(Create(concave))  # Show Frank 2
 
         # --- Create Frank2's hull ---
-        hull = Polygon(*getHullPoints(Frank_2_points))
+        hull_points = getHullPoints(Frank_2_points)
+        # rubber band animation
+        band_points = []
+        band_center = Point(-1, 0, 0)
+        # project each hull point onto a circle
+        for p in hull_points:
+            l = math.sqrt((p.x - band_center.x) ** 2 + (p.y - band_center.y) ** 2)
+            band_points.append(
+                Point(*[(x - y) / l * 4.5 + y for x, y in zip(p, band_center)])
+            )
+        band = ArcPolygon(*band_points, color=hull_color)
+        band.make_smooth()
+        for arc in band.submobjects:
+            self.play(Uncreate(arc, run_time=0))  # render bugs without this
+        hull = Polygon(*hull_points)
         hull.set_stroke(hull_color)
-        self.bring_to_front(hull)  # Put the hull in front of the polygon
-        self.play(Create(hull))
+        self.play(Create(band))
+        self.play(Transform(band, hull))
         self.wait(2)
         self.play(self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(width=22))
+        self.remove(band)
 
         # --- Automatically convexifies Frank2 ---
         while findFlip(Frank_2_points):
