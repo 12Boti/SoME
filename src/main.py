@@ -454,6 +454,36 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(Create(arrow_a))
         self.play(Create(arrow_b))
         self.wait(2)
+        self.play(
+            Uncreate(prev_lines),
+            Uncreate(arrow_a),
+            Uncreate(arrow_b),
+            Restore(concave),
+        )
+        self.wait(2)
+
+        # --- Show that area increases ---
+        pocket1 = Polygon(
+            Frank_2_points[8],
+            point_before_flip,
+            Frank_2_points[0],
+            stroke_opacity=0,
+            fill_color=colors.GREEN,
+            fill_opacity=0.75,
+        )
+        self.play(FadeIn(pocket1))
+        self.wait(1)
+        pocket2 = Polygon(
+            Frank_2_points[8],
+            Frank_2_points[9],
+            Frank_2_points[0],
+            stroke_opacity=0,
+            fill_color=colors.GREEN,
+            fill_opacity=0.75,
+        )
+        self.play(FadeIn(pocket2))
+        self.wait(2)
+        self.play(FadeOut(pocket1), FadeOut(pocket2))
 
 
 class Image(Scene):  # type: ignore
