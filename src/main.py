@@ -1,15 +1,14 @@
-from audioop import reverse
 import math
+from copy import deepcopy
 from dataclasses import dataclass
 from functools import total_ordering
-from typing import Sequence, overload, Union
-from copy import deepcopy
+from typing import Sequence, Union, overload
 
+import manim  # type: ignore
 import manim.utils.color as colors  # type: ignore
-import manim
 from manim import (
-    Arrow,
     Create,
+    CurvedArrow,
     DashedLine,
     Dot,
     FadeIn,
@@ -25,10 +24,7 @@ from manim import (
     Transform,
     Uncreate,
     VGroup,
-    CurvedArrow,
     VMobject,
-    Rotate,
-    PI,
 )
 
 
@@ -254,7 +250,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(FadeIn(concave), run_time=2)
         self.wait(2)
 
-
         # --- Dragging Frank's points to make him convex (Cheating) ---
         convex_frank = [
             Point(1, 3, 0),
@@ -273,13 +268,8 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.wait(3)
         self.play(Restore(concave))  # Deformed Frank -> Frank
 
-
         # --- Demonstrate flip ---
-        self.play(
-            self.camera.frame.animate.move_to([2.5, 1.5, 0.0]).set(
-                width=10
-            )
-        )
+        self.play(self.camera.frame.animate.move_to([2.5, 1.5, 0.0]).set(width=10))
         axis = Line(Frank_points[0], Frank_points[7], color=colors.RED)
         self.play(Create(axis))
         orig = deepcopy(Frank_points[8])
@@ -288,27 +278,37 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(Create(dashed))
         dot = Dot(Frank_points[8], color=colors.RED)
         self.add(dot)
-        #self.play(Rotate(dashed, angle=0, run_time=0)) #To do fix: wtf Calling this function somehow reverses the animation of uncreate. (As it turns out each dash uncreates in the wrong direction.)
-        #self.play(Uncreate(axis, run_time=0))
+        # self.play(Rotate(dashed, angle=0, run_time=0)) #To do fix: wtf Calling this function somehow reverses the animation of uncreate. (As it turns out each dash uncreates in the wrong direction.)
+        # self.play(Uncreate(axis, run_time=0))
         axis2 = Line(Frank_points[0], Frank_points[7], color=colors.RED)
         flipped = Polygon(*Frank_points, color=stroke_color)
         flipped.set_fill(fill_color, opacity=0.75)
         self.play(
             manim.AnimationGroup(
                 Uncreate(axis, run_time=0),
-                Create(axis2, run_time=0.00000000000000001, rate_func=manim.rate_functions.linear), #Bring axis to front. I don't konw why this works but OH MY GOD this took way too long! (these attempts failed: self.bring_to_front(axis), self.bring_to_back(concave), changing the z coordinates)
-                Uncreate(dashed, run_time=1, reverse = False, rate_func=manim.rate_functions.linear), #New discovery: If the uncreate's rate function is not specified, then even though the transfrom's rate function is set to linear it will be smooth.
-                Transform(concave, flipped, run_time=1, rate_func=manim.rate_functions.linear),
+                Create(
+                    axis2,
+                    run_time=0.00000000000000001,
+                    rate_func=manim.rate_functions.linear,
+                ),  # Bring axis to front. I don't konw why this works but OH MY GOD this took way too long! (these attempts failed: self.bring_to_front(axis), self.bring_to_back(concave), changing the z coordinates)
+                Uncreate(
+                    dashed,
+                    run_time=1,
+                    reverse=False,
+                    rate_func=manim.rate_functions.linear,
+                ),  # New discovery: If the uncreate's rate function is not specified, then even though the transfrom's rate function is set to linear it will be smooth.
+                Transform(
+                    concave,
+                    flipped,
+                    run_time=1,
+                    rate_func=manim.rate_functions.linear,
+                ),
                 lag_ratio=0.05,
             )
         )
         self.remove(dot)
         self.play(Uncreate(axis2))
-        self.play(
-            self.camera.frame.animate.move_to([0, 0, 0.0]).set(
-                width=14
-            )
-        )
+        self.play(self.camera.frame.animate.move_to([0, 0, 0.0]).set(width=14))
 
         # --- Flip Frank, killing him ---
         flip(Frank_points[0], Frank_points[4], Frank_points)  # Flip randonly
@@ -327,7 +327,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )  # Show dashed oultine (probably buggy, but looks cool)
         self.play(FadeOut(dashed))  # Fade out dashed outline
         self.wait(1)
-
 
         # --- Create Frank2 ---
         Frank_2_points = [  # Define the points for Frank 2
@@ -353,32 +352,23 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )
         self.play(Create(concave))  # Show Frank 2
 
-
         # --- Create Frank2's hull ---
         hull = Polygon(*getHullPoints(Frank_2_points))
         hull.set_stroke(hull_color)
         self.bring_to_front(hull)  # Put the hull in front of the polygon
         self.play(Create(hull))
         self.wait(2)
-        self.play(
-            self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(
-                width=22
-            )
-        )
+        self.play(self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(width=22))
 
         # --- Automatically convexifies Frank2 ---
         while findFlip(Frank_2_points):
 
             # Create the polygon after the flip
-            flipped = Polygon(
-                *Frank_2_points, color=stroke_color
-            )
+            flipped = Polygon(*Frank_2_points, color=stroke_color)
             flipped.set_fill(fill_color, opacity=0.75)
 
             # Recalculate the hull after the flip
-            flipped_hull = Polygon(
-                *getHullPoints(Frank_2_points)
-            )
+            flipped_hull = Polygon(*getHullPoints(Frank_2_points))
             flipped_hull.set_stroke(hull_color)
 
             self.play(
@@ -388,7 +378,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                     flipped_hull,
                 ),
             )
-
 
         # --- Reset Frank 2 ---
         Frank_2_points = [
@@ -410,7 +399,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             )
         )
 
-
         # --- Show that perimeter is constant ---
         self.play(
             ShowPassingFlash(
@@ -418,13 +406,15 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                 run_time=2,
                 time_width=1,
             )
-        )  
+        )
         self.wait(2)
-        prev_lines = VMobject(color=highlight_color).set_points_as_corners([
-            Frank_2_points[0],
-            Frank_2_points[9],
-            Frank_2_points[8],
-        ])
+        prev_lines = VMobject(color=highlight_color).set_points_as_corners(
+            [
+                Frank_2_points[0],
+                Frank_2_points[9],
+                Frank_2_points[8],
+            ]
+        )
         point_before_flip = deepcopy(Frank_2_points[9])
         flip(Frank_2_points[8], Frank_2_points[0], Frank_2_points)
         flipped = Polygon(*Frank_2_points, color=stroke_color)
