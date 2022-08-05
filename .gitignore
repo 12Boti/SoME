@@ -5,3 +5,6 @@ __pycache__/
 
 # nix outputs
 result*
+
+#assets
+/assets/

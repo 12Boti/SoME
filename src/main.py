@@ -3,11 +3,14 @@ from copy import deepcopy
 from dataclasses import dataclass
 from functools import total_ordering
 from typing import Sequence, Union, overload
+import random
+from typing_extensions import runtime
 
 import manim  # type: ignore
 import manim.utils.color as colors  # type: ignore
 from manim import (
     ArcPolygon,
+    Circle,
     Create,
     CurvedArrow,
     DashedLine,
@@ -22,10 +25,15 @@ from manim import (
     Restore,
     Scene,
     ShowPassingFlash,
+    Text,
     Transform,
     Uncreate,
     VGroup,
     VMobject,
+    Write,
+    Unwrite,
+    PI,
+    register_font,
 )
 
 
@@ -311,7 +319,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )
         self.remove(dot)
         self.play(Uncreate(axis2))
-        self.play(self.camera.frame.animate.move_to([0, 0, 0.0]).set(width=14))
+        self.play(self.camera.frame.animate.move_to([0, 0, 0.0]).set(width=128/9))
 
         # --- Flip Frank, killing him ---
         flip(Frank_points[0], Frank_points[4], Frank_points)  # Flip randonly
@@ -484,6 +492,174 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(FadeIn(pocket2))
         self.wait(2)
         self.play(FadeOut(pocket1), FadeOut(pocket2))
+        self.play(Uncreate(concave))
+        self.play(
+            self.camera.frame.animate.move_to([0,0,0]).set(
+                width=128/9
+            )
+        )
+
+            # --- convexity tolerance ---
+        with register_font("./assets/font/NewRocker-Regular.ttf"):
+            a = Text("CONVEXITY TOLERANCE", font="New Rocker", font_size=70)
+        self.play(Write(a, run_time=0.8))
+        self.wait(1)
+        self.play(Unwrite(a, run_time=0.5))
+        dots = VGroup(
+            Dot([0,1,0]),
+            Dot([-3,0,0]),
+            Dot([3,-1,0]),
+        )
+        segments = VMobject(color=colors.BLUE_D).set_points_as_corners(
+            [
+                [-3,0,0],
+                [0,1,0],
+                [3,-1,0],
+            ])
+        self.play(FadeIn(dots))
+        self.bring_to_back(segments)
+        self.play(Create(segments))
+        middots = VGroup(
+            Dot([-1.5,0.5,0]),
+            Dot([1.5,0,0]),
+        )
+        self.wait(1)
+        self.play(FadeIn(middots))
+        l= Line([-1.5,0.5,0], [1.5,0,0],color=colors.PURPLE_D)
+        l.set_length(30)
+        self.bring_to_back(l)
+        self.play(Create(l,run_time=2))
+        circle_group = manim.Group(
+            Circle(radius=0.7397954428741, arc_center=[-3,0,0], color = colors.GREEN_E),
+            Circle(radius=0.7397954428741, arc_center=[0,1,0], color = colors.GREEN_E),
+            Circle(radius=0.7397954428741, arc_center=[3,-1,0], color = colors.GREEN_E),
+        )
+        self.play(*[Create(x) for x in circle_group])
+        r1 = Line([-3,0,0], [-3, 0.7397954428741,0], color = colors.ORANGE)
+        r2 = Line([0,1,0], [0,1.7397954428741,0], color = colors.ORANGE)
+        r3 = Line([3,-1,0], [3,-1+0.7397954428741,0], color = colors.ORANGE)
+        self.play(
+            Create(r1),
+            Create(r2),
+            Create(r3),
+            )
+        text1 = Text('r₁', color = colors.ORANGE).scale(0.5)
+        text1.move_to([0.2, 1+0.35,0])
+        text2 = Text('r₁', color = colors.ORANGE).scale(0.5)
+        text2.move_to([-3+0.2,0.35,0])
+        text3 = Text('r₁', color = colors.ORANGE).scale(0.5)
+        text3.move_to([3+0.2,-1+0.35,0])
+        self.play(
+            Write(text1),
+            Write(text2),
+            Write(text3),
+            )
+        self.wait(2)
+        self.play(
+            Unwrite(text1),
+            Unwrite(text2),
+            Unwrite(text3),
+            Uncreate(r1),
+            Uncreate(r2),
+            Uncreate(r3),
+            *[Uncreate(x) for x in circle_group],
+            Uncreate(l),
+            FadeOut(dots,middots),
+            Uncreate(segments),
+            )
+        self.wait(2)
+        Eduard_points = [
+            #Point(1, 3, 0),
+            Point(0, 3, 0),
+            Point(-2, 1.5, 0),
+            Point(-3, 0, 0),
+            Point(-2.5, -2, 0),
+            Point(0, -3, 0),
+            Point(3.5, -3, 0),
+            Point(4, 0, 0),
+            Point(3, 2.5, 0),
+        ]
+        Eduard = Polygon(*Eduard_points, color=stroke_color)
+        self.play(Create(Eduard))
+        radiuses = []        
+        epsilon=999999999
+        for i in range(len(Eduard_points)):
+            m1 = findMidPoint(Eduard_points[(i-1)%len(Eduard_points)],Eduard_points[(i)])
+            m2 = findMidPoint(Eduard_points[(i+1)%len(Eduard_points)],Eduard_points[(i)])
+            l = Line(m1,m2,color=colors.PURPLE_D)
+            l.set_length(20)
+            v1 = Point(
+                m1.x - m2.x,
+                m1.y - m2.y,
+                m1.z - m2.z,
+            )
+            v1Length = math.sqrt(v1.x**2 + v1.y**2 + v1.z**2)
+            v2 = Point(Eduard_points[(i)].x - m2.x, Eduard_points[(i)].y - m2.y, 0)
+            dotProduct = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
+            projectedP = Point(*[x * dotProduct / (v1Length**2) + y for x, y in zip(v1, m2)])
+            v3 = Point(
+                projectedP.x - Eduard_points[i].x,
+                projectedP.y - Eduard_points[i].y,
+                projectedP.z - Eduard_points[i].z,
+            )
+            v3_length = math.sqrt(v3.x**2 + v3.y**2 + v3.z**2)
+            epsilon = min(epsilon, v3_length)
+            circle_group = manim.Group(
+                Circle(radius=v3_length, arc_center=Eduard_points[(i-1)%len(Eduard_points)], color = colors.GREEN_E),
+                Circle(radius=v3_length, arc_center=Eduard_points[i], color = colors.GREEN_E),
+                Circle(radius=v3_length, arc_center=Eduard_points[(i+1)%len(Eduard_points)], color = colors.GREEN_E),
+            )
+            r1 = Line(Eduard_points[i], projectedP, color = colors.ORANGE)
+            radiuses.append(r1)
+            self.play(
+                Create(l,run_time=0.8),
+                *[Create(x,run_time=0.8) for x in circle_group]
+                )
+            self.play(Create(r1, run_time=0.2))
+            self.play(
+                *[Uncreate(x, run_time=0.5) for x in circle_group],
+                Uncreate(l, run_time=0.5),
+            )
+        #Боже мой!
+        self.wait(2)
+        text0 = Text('ε',color=colors.ORANGE).scale(0.8)
+        text0.move_to([-6, 3,0])
+        self.play(Write(text0))
+        text1 = Text(' = Min(').scale(0.8).next_to(text0).shift([0.1,0,0])
+        self.play(Write(text1))
+        comma_shift=0.2
+        text2 = Text('r₁',color=colors.ORANGE).scale(0.8).next_to(text1).shift([-0.2,0,0])
+        text3 = Text(',').scale(0.8).next_to(text2).shift([-0.2,-comma_shift,0])
+        self.play(Transform(radiuses[0],text2), Write(text3))
+        text4 = Text('r₂',color=colors.ORANGE).scale(0.8).next_to(text3).shift([-0.2,comma_shift,0])
+        text5 = Text(',').scale(0.8).next_to(text4).shift([-0.2,-comma_shift,0])
+        self.play(Transform(radiuses[1],text4), Write(text5))
+        text6 = Text('...',color=colors.ORANGE).scale(0.8).next_to(text5).shift([-0.2,comma_shift,0])
+        text7 = Text(',').scale(0.8).next_to(text6).shift([-0.2,-comma_shift,0])
+        text8 = Text('rₙ',color=colors.ORANGE).scale(0.8).next_to(text7).shift([-0.2,comma_shift,0])
+        self.play(*[Transform(x,text6) for x in radiuses[2:-1]], Write(text7))
+        self.play(Transform(radiuses[-1],text8))
+        text9 = Text(')').scale(0.8).next_to(text8).shift([-0.2,0,0])
+        self.play(Write(text9))
+        self.wait(2)
+        self.play(*[Unwrite(t) for t in [text1, text2, text3, text4, text5, text6, text7, text8, text9] + radiuses])
+        circles = [Circle(radius=epsilon, arc_center=p, color=colors.ORANGE) for p in Eduard_points]
+        self.remove(text0)
+        self.play(*[Transform(text0.copy(), c) for c in circles])
+        self.wait(2)
+        random.seed = 3.141592
+        rage = range #Oh Manim
+        for i in rage(7):
+            wiggled_points = []
+            for p in Eduard_points:
+                angle = random.random()*2*PI
+                wiggled_points.append(Point(p.x + epsilon*math.cos(angle),p.y + epsilon*math.sin(angle),0))
+            wiggled = Polygon(*wiggled_points, color=stroke_color)
+            self.play(Transform(Eduard, wiggled, run_time=0.7))
+        self.wait(2)
+
+
+
 
 
 class Image(Scene):  # type: ignore
