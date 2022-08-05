@@ -369,9 +369,9 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         band_center = Point(-1, 0, 0)
         # project each hull point onto a circle
         for p in hull_points:
-            l = math.sqrt((p.x - band_center.x) ** 2 + (p.y - band_center.y) ** 2)
+            length = math.sqrt((p.x - band_center.x) ** 2 + (p.y - band_center.y) ** 2)
             band_points.append(
-                Point(*[(x - y) / l * 4.5 + y for x, y in zip(p, band_center)])
+                Point(*[(x - y) / length * 4.5 + y for x, y in zip(p, band_center)])
             )
         band = ArcPolygon(*band_points, color=hull_color)
         band.make_smooth()
@@ -606,7 +606,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Uncreate(r2),
             Uncreate(r3),
             *[Uncreate(x) for x in circle_group],
-            Uncreate(l),
+            Uncreate(line),
             FadeOut(dots, middots),
             Uncreate(segments),
         )
@@ -671,13 +671,13 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             r1 = Line(Eduard_points[i], projectedP, color=colors.ORANGE)
             radiuses.append(r1)
             self.play(
-                Create(l, run_time=0.8),
+                Create(line, run_time=0.8),
                 *[Create(x, run_time=0.8) for x in circle_group],
             )
             self.play(Create(r1, run_time=0.2))
             self.play(
                 *[Uncreate(x, run_time=0.5) for x in circle_group],
-                Uncreate(l, run_time=0.5),
+                Uncreate(line, run_time=0.5),
             )
         # Боже мой!
         self.wait(2)

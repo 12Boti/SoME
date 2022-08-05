@@ -42,6 +42,11 @@
           hash = "sha256-Bmk9F3V/zGj0jReqHvvOuX9s1IDEGbwn4ggIOytNY1o=";
         };
       };
+      convexityFont = pkgs.fetchzip {
+        url = "https://www.1001fonts.com/download/new-rocker.zip";
+        hash = "sha256-Zl36iQuJnSrEjxPaKF81nxMDWotbu11ehOFKDH7BLh4=";
+        stripRoot = false;
+      };
     in
     {
       packages.default = pkgs.stdenvNoCC.mkDerivation {
@@ -53,6 +58,8 @@
         ];
         installPhase = ''
           scene=CreateConcavePolygon
+          mkdir -p assets/font
+          cp ${convexityFont}/NewRocker-Regular.ttf assets/font
           manim render main.py $scene
           mv media/videos/main/1080p60/$scene.mp4 $out
         '';
