@@ -1,14 +1,14 @@
 import math
+import random
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import total_ordering
 from typing import Sequence, Union, overload
-import random
-from typing_extensions import runtime
 
 import manim  # type: ignore
 import manim.utils.color as colors  # type: ignore
 from manim import (
+    PI,
     ArcPolygon,
     Circle,
     Create,
@@ -28,11 +28,10 @@ from manim import (
     Text,
     Transform,
     Uncreate,
+    Unwrite,
     VGroup,
     VMobject,
     Write,
-    Unwrite,
-    PI,
     register_font,
 )
 
@@ -492,7 +491,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         line_half_1 = Line(inner_point, intersect_point, color=colors.GREEN)
         line_half_2 = Line(intersect_point, Frank_2_points[9], color=colors.GREEN)
         self.add(line_half_1, line_half_2)
-        self.remove((full_line))
+        self.remove(full_line)
         self.wait(1)
         line_half_2_next = Line(intersect_point, point_before_flip, color=colors.GREEN)
         line_half_2_dashed = DashedLine(
@@ -539,7 +538,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             ),
         )
         self.wait(2)
-        self.play(FadeOut(pocket1), FadeOut(pocket2))
         self.play(Uncreate(concave))
         self.play(self.camera.frame.animate.move_to([0, 0, 0]).set(width=128 / 9))
 
@@ -570,10 +568,10 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )
         self.wait(1)
         self.play(FadeIn(middots))
-        l = Line([-1.5, 0.5, 0], [1.5, 0, 0], color=colors.PURPLE_D)
-        l.set_length(30)
-        self.bring_to_back(l)
-        self.play(Create(l, run_time=2))
+        line = Line([-1.5, 0.5, 0], [1.5, 0, 0], color=colors.PURPLE_D)
+        line.set_length(30)
+        self.bring_to_back(line)
+        self.play(Create(line, run_time=2))
         circle_group = manim.Group(
             Circle(radius=0.7397954428741, arc_center=[-3, 0, 0], color=colors.GREEN_E),
             Circle(radius=0.7397954428741, arc_center=[0, 1, 0], color=colors.GREEN_E),
@@ -627,7 +625,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         Eduard = Polygon(*Eduard_points, color=stroke_color)
         self.play(Create(Eduard))
         radiuses = []
-        epsilon = 999999999
+        epsilon = 999999999.0
         for i in range(len(Eduard_points)):
             m1 = findMidPoint(
                 Eduard_points[(i - 1) % len(Eduard_points)], Eduard_points[(i)]
@@ -635,8 +633,8 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             m2 = findMidPoint(
                 Eduard_points[(i + 1) % len(Eduard_points)], Eduard_points[(i)]
             )
-            l = Line(m1, m2, color=colors.PURPLE_D)
-            l.set_length(20)
+            line = Line(m1, m2, color=colors.PURPLE_D)
+            line.set_length(20)
             v1 = Point(
                 m1.x - m2.x,
                 m1.y - m2.y,
@@ -737,7 +735,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.remove(text0)
         self.play(*[Transform(text0.copy(), c) for c in circles])
         self.wait(2)
-        random.seed = 3.141592
+        random.seed(3.141592)
         rage = range  # Oh Manim
         for i in rage(7):
             wiggled_points = []
