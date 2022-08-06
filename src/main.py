@@ -487,18 +487,46 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         # create the entire line as one object to make the create animation smooth
         full_line = Line(inner_point, Frank_2_points[9], color=colors.GREEN)
         other_line = Line(inner_point, point_before_flip, color=colors.YELLOW)
-        self.play(Create(full_line), Create(other_line))
+        inner_dot2 = Dot(inner_point, color=colors.GREEN)
+        prev_dot2 = Dot(point_before_flip, color=colors.RED)
+        next_dot2 = Dot(Frank_2_points[9], color=colors.RED)
+        self.play(
+            Create(full_line), Create(other_line),
+            FadeOut(
+                inner_dot,
+                prev_dot,
+                next_dot,
+            ),
+            FadeIn(inner_dot2, run_time=0.00000000000000000000001),
+            FadeIn(prev_dot2, run_time=0.00000000000000000000001),
+            FadeIn(next_dot2, run_time=0.00000000000000000000001),
+            )
         line_half_1 = Line(inner_point, intersect_point, color=colors.GREEN)
         line_half_2 = Line(intersect_point, Frank_2_points[9], color=colors.GREEN)
         self.add(line_half_1, line_half_2)
         self.remove(full_line)
+        self.remove(next_dot2)
+        self.add(next_dot2)
         self.wait(1)
         line_half_2_next = Line(intersect_point, point_before_flip, color=colors.GREEN)
         line_half_2_dashed = DashedLine(
             intersect_point, Frank_2_points[9], color=colors.GREEN
         )
         self.add(line_half_2_dashed)
-        self.play(Transform(line_half_2, line_half_2_next))
+        inner_dot3 = Dot(inner_point, color=colors.GREEN)
+        prev_dot3 = Dot(point_before_flip, color=colors.RED)
+        next_dot3 = Dot(Frank_2_points[9], color=colors.RED)
+        self.play(
+            Transform(line_half_2, line_half_2_next),
+            FadeOut(
+                inner_dot2,
+                prev_dot2,
+                next_dot2,
+            ),
+            FadeIn(inner_dot3, run_time=0.00000000000000000000001),
+            FadeIn(prev_dot3, run_time=0.00000000000000000000001),
+            FadeIn(next_dot3, run_time=0.00000000000000000000001),
+        )
         self.wait(2)
         inequality = manim.Text("+ ≥").rotate(-PI / 2).move_to([-5, 1, 0])
         line_half_1_copy = line_half_1.copy()
@@ -531,9 +559,9 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                 other_line,
                 other_line_copy,
                 inequality,
-                inner_dot,
-                prev_dot,
-                next_dot,
+                inner_dot3,
+                prev_dot3,
+                next_dot3,
                 axis,
             ),
         )
