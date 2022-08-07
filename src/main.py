@@ -761,7 +761,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             for p in Eduard_points
         ]
         self.remove(text0)
-        self.play(*[Transform(text0.copy(), c) for c in circles])
+        self.play(*[ReplacementTransform(text0.copy(), c) for c in circles])
         self.wait(2)
         random.seed(3.141592)
         rage = range  # Oh Manim
@@ -773,13 +773,15 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                     Point(
                         p.x + epsilon * math.cos(angle),
                         p.y + epsilon * math.sin(angle),
-                        0,
+                        0
                     )
                 )
             wiggled = Polygon(*wiggled_points, color=stroke_color)
             self.play(Transform(Eduard, wiggled, run_time=0.7))
-        self.wait(2)
 
+        self.wait(2)
+        self.play(*[Uncreate(c) for c in circles], Uncreate(Eduard))
+        self.wait(2)
 
 class Image(Scene):  # type: ignore
     def construct(self) -> None:
