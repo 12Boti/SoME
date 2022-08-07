@@ -10,6 +10,7 @@ import manim.utils.color as colors  # type: ignore
 from manim import (
     PI,
     ArcPolygon,
+    Arrow,
     Circle,
     Create,
     CurvedArrow,
@@ -380,7 +381,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         hull = Polygon(*hull_points)
         hull.set_stroke(hull_color)
         self.play(Create(band))
-        self.play(Transform(band, hull))
+        self.play(Transform(band, hull), rate_func=manim.rate_functions.ease_out_elastic)
         self.wait(2)
         self.play(self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(width=22))
         self.remove(band)
@@ -783,10 +784,65 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(*[Uncreate(c) for c in circles], Uncreate(Eduard))
         self.wait(2)
 
-class Image(Scene):  # type: ignore
-    def construct(self) -> None:
 
-        image = ImageMobject(r"D:\Sebi\Árpád\matek\SoME\erdos.jpg")
-        image.height = 10
-        self.play(FadeIn(image))
-        self.wait(5)
+        # --- Proof ---
+        frank_2 = Polygon(*Frank_2_points, color=stroke_color) 
+        frank_2.set_fill(fill_color, opacity=0.75)
+        self.play(
+            self.camera.frame.animate.move_to(frank_2).set(
+                width=getCameraWidth(Frank_2_points)
+            )
+        )
+        self.play(Create(frank_2))
+        self.wait(2)
+        dot_start = Dot(Frank_2_points[4], color=colors.RED)
+        self.play(self.camera.frame.animate.move_to(Frank_2_points[4]).set(width=8), FadeIn(dot_start))
+        hull_points = getHullPoints(Frank_2_points)
+        dot_approached = Dot([-8.711058823529418,3.236235294117641,0], color=colors.GREEN)
+        self.play(Create(hull))
+        self.play(self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(width=22))
+        self.wait(1)
+        self.play(FadeIn(dot_approached))
+        arrow = Arrow(
+            Frank_2_points[4],
+            [-8.711058823529418,3.236235294117641,0],
+            color=colors.GOLD,
+        )
+        self.wait(1)
+        self.play(Create(arrow))
+        while findFlip(Frank_2_points):
+
+            # Create the polygon after the flip
+            flipped = Polygon(*Frank_2_points, color=stroke_color)
+            flipped.set_fill(fill_color, opacity=0.75)
+            dot_start_2 = Dot(Frank_2_points[4], color=colors.RED)
+            arrow2 = Arrow(
+                Frank_2_points[4],
+                [-8.711058823529418,3.236235294117641,0],
+                color=colors.GOLD,
+            )
+            self.play(
+                Transform(frank_2, flipped),
+                Transform(dot_start, dot_start_2),
+                Transform(arrow, arrow2),
+            )
+        self.play(
+            self.camera.frame.animate.move_to(Frank_2_points[4]).set(
+                width=5
+            )
+        )
+        c = Circle(radius=0.5, arc_center=Frank_2_points[4], color=colors.ORANGE)
+        self.play(Create(c))
+        dot_approached_highlight = Dot([-8.711058823529418,3.236235294117641,0], color=colors.YELLOW_C)
+        self.wait(1)
+        self.play(FadeIn(dot_approached_highlight))
+        self.play(FadeOut(dot_approached_highlight))
+        self.wait(2)
+
+#class Image(Scene):  # type: ignore
+#    def construct(self) -> None:
+#
+#        image = ImageMobject(r"D:\Sebi\Árpád\matek\SoME\erdos.jpg")
+#        image.height = 10
+#        self.play(FadeIn(image))
+#        self.wait(5)
