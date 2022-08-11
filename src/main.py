@@ -563,7 +563,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                 other_line,
                 other_line_copy,
                 inequality,
-                inner_dot3,
+                #inner_dot3,
                 prev_dot3,
                 next_dot3,
                 axis,
@@ -572,6 +572,50 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.wait(2)
         #self.play(Uncreate(concave))
 
+        # --- show vertex can't get farther than perimeter/2 ---
+        Frank_2_extended_points = [
+            Point(-3.224768843, 0.305669231, 0),
+            Point(-7.3477603878, 0.3363404141, 0),
+            Point(-9.3469458029, 0.3934164889, 0),
+            Point(-10.7600924158, 0.3384924263, 0),
+            Point(-12.4281440321, 0.059216225, 0),
+            Point(-9.6133959371, -0.2186203491, 0),
+            Point(-5.6142604062, -0.3017768587, 0),
+            Point(-3.3784287974, -0.2692650573, 0),
+            Point(2, 0, 0),
+            Point(-0.2263518348, 0.2082246565, 0),
+        ]
+        frank_2_extended = Polygon(*Frank_2_extended_points, color=stroke_color)
+        frank_2_extended.set_fill(fill_color, opacity=0.75)
+        segment = Line(start=inner_point, end=Frank_2_points[4], color=colors.ORANGE)
+        segment2 = Line(start=inner_point, end=Frank_2_extended_points[4], color=colors.ORANGE)
+        dot = Dot(Frank_2_points[4], color= colors.GREEN)
+        dot2 = Dot(Frank_2_extended_points[4], color= colors.GREEN)
+        inner_dot4 = Dot(inner_point, color=colors.GREEN)
+        self.play(Create(segment), FadeIn(dot), FadeIn(inner_dot4, run_time=0.00000000000000000000001),)
+        self.play(self.camera.frame.animate.move_to([-4.8, 0.2, 0.0]).set(width=18))
+        self.play(
+            Transform(concave, frank_2_extended), 
+            Transform(dot, dot2), 
+            Transform(segment, segment2),  
+        )
+        self.remove(inner_dot3)
+        self.wait(2)
+        self.play(
+            ShowPassingFlash(
+                VMobject(color=highlight_color).set_points_as_corners(
+                [
+                    Frank_2_extended_points[4],
+                    Frank_2_extended_points[5],
+                    Frank_2_extended_points[6],
+                    Frank_2_extended_points[7],
+                    Frank_2_extended_points[8],
+                ]),
+                run_time=2,
+                time_width=1,
+            )
+        )
+        self.play(Uncreate(segment), FadeOut(dot,inner_dot4))
         # --- show limit exits ---
         Frank_2_points = [
             Point(0, 4, 0),
