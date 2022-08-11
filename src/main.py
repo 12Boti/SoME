@@ -24,6 +24,7 @@ from manim import (
     Polygon,
     ReplacementTransform,
     Restore,
+    Rotate,
     Scene,
     ShowPassingFlash,
     Text,
@@ -44,6 +45,8 @@ class Point(Sequence[float]):
     y: float
     z: float
 
+    def distanceFrom(self, p) -> float:
+        return math.sqrt((self.x - p.x)**2 + (self.y - p.y)**2 + (self.z - p.z)**2)
     @overload
     def __getitem__(self, i: int) -> float:
         pass
@@ -567,10 +570,124 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             ),
         )
         self.wait(2)
-        self.play(Uncreate(concave))
-        self.play(self.camera.frame.animate.move_to([0, 0, 0]).set(width=128 / 9))
+        #self.play(Uncreate(concave))
+
+        # --- show limit exits ---
+        Frank_2_points = [
+            Point(0, 4, 0),
+            Point(-1, 0, 0),
+            Point(-1, 2, 0),
+            Point(-2, 3, 0),
+            Point(-3, 1, 0),
+            Point(-1, -1, 0),
+            Point(-5, -1, 0),
+            Point(-3, -2, 0),
+            Point(2, 0, 0),
+            Point(0, 1, 0),
+        ]
+        Frank_2_convex_points = deepcopy(Frank_2_points)
+        frank_2 = Polygon(*Frank_2_points, color=stroke_color)
+        frank_2.set_fill(fill_color, opacity=0.75)
+        self.play(ReplacementTransform(concave, frank_2))
+        self.wait(2)
+        while findFlip(Frank_2_convex_points):
+            something_needs = " to be here I guess"
+        frank_2_convex = Polygon(*Frank_2_convex_points, color=colors.YELLOW)
+        self.play(self.camera.frame.animate.move_to([0.8, 0.2, 0.0]).set(width=32))
+        dot_points = [Point(0, 0, 0), Point(-2, 1, 0), Point(-3, -1.5, 0)]
+        dots = VGroup(*[Dot(x, color=colors.GREEN) for x in dot_points])
+        self.play(FadeIn(dots))
+
+        arrows = VGroup(*[
+            Arrow(
+                    dot_points[x], 
+                    [
+                        dot_points[x].x+dot_points[x].distanceFrom(Frank_2_convex_points[0]),
+                        dot_points[x].y,
+                        0
+                    ],
+                    color=colors.ORANGE
+                ) 
+            for x in range(len(dot_points))]
+        )
+        text0 = (
+            Text("d₁", color=colors.ORANGE)
+            .scale(0.8)
+            .next_to(arrows[0])
+            .shift([-0.2, 0, 0])
+        )
+        text1 = (
+            Text("d₂", color=colors.ORANGE)
+            .scale(0.8)
+            .next_to(arrows[1])
+            .shift([-0.2, 0, 0])
+        )
+        text2 = (
+            Text("d₃", color=colors.ORANGE)
+            .scale(0.8)
+            .next_to(arrows[2])
+            .shift([-0.2, 0, 0])
+        )
+        circles = VGroup(*[
+            Circle(
+                radius=x.distanceFrom(Frank_2_convex_points[0]),
+                arc_center=x, 
+                color=colors.ORANGE
+            )
+            for x in dot_points
+        ])
+        self.play(Create(arrows, lag_ratio=0), Write(text0), Write(text1), Write(text2)) # I have no clue why the texts don't work in one Write(), but I'm too tired to care at this point.
+        self.wait(2)
+        self.play(Unwrite(text0), Unwrite(text1), Unwrite(text2))
+        self.play(
+                    *[Rotate(arrows[x], angle=2*PI, about_point=dot_points[x]) for x in range(3)], 
+                    Create(circles, lag_ratio=0)
+                )
+        self.wait(2)
+        approached = [Dot(Frank_2_convex_points[0], color=colors.TEAL)]
+        self.play(FadeIn(approached[-1]))
+        self.wait(1)
+        self.play(Uncreate(circles, lag_ratio=0))
+        self.wait(1)
+        for i in range(1, len(Frank_2_points)):
+            approached.append(Dot(Frank_2_convex_points[i], color=colors.TEAL))
+            arrowsb = VGroup(*[
+                Arrow(
+                        dot_points[x], 
+                        [
+                            dot_points[x].x+dot_points[x].distanceFrom(Frank_2_convex_points[i]),
+                            dot_points[x].y,
+                            0
+                        ],
+                        color=colors.ORANGE
+                    )
+                for x in range(3)]
+            )
+            circles = VGroup(*[
+                Circle(
+                    radius=x.distanceFrom(Frank_2_convex_points[i]),
+                    arc_center=x, 
+                    color=colors.ORANGE
+                )
+                for x in dot_points
+            ])
+            
+            self.play(Transform(arrows, arrowsb, run_time=0.3))
+            self.play(
+                    *[Rotate(arrows[x], angle=2*PI, about_point=dot_points[x], run_time=0.7) for x in range(3)], 
+                    Create(circles, lag_ratio=0, run_time=0.7)
+                )
+            self.play(FadeIn(approached[-1], run_time=0.4))
+            self.play(Uncreate(circles, lag_ratio=0, run_time=0.5))
+        self.wait(1)
+        self.play(Create(frank_2_convex))
+        self.play(Uncreate(arrows), FadeOut(dots), *[FadeOut(x) for x in approached])
+        self.wait(1)
+        self.play(Uncreate(frank_2), Uncreate(frank_2_convex))
+        
 
         # --- convexity tolerance ---
+        self.play(self.camera.frame.animate.move_to([0, 0, 0]).set(width=128 / 9))
         with register_font("./assets/font/NewRocker-Regular.ttf"):
             a = Text("CONVEXITY TOLERANCE", font="New Rocker", font_size=70)
         self.play(Write(a, run_time=0.8))
@@ -786,7 +903,19 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
 
 
         # --- Proof ---
-        frank_2 = Polygon(*Frank_2_points, color=stroke_color) 
+        Frank_2_points = [
+            Point(0, 4, 0),
+            Point(-1, 0, 0),
+            Point(-1, 2, 0),
+            Point(-2, 3, 0),
+            Point(-3, 1, 0),
+            Point(-1, -1, 0),
+            Point(-5, -1, 0),
+            Point(-3, -2, 0),
+            Point(2, 0, 0),
+            Point(0, 1, 0),
+        ]
+        frank_2 = Polygon(*Frank_2_points, color=stroke_color)
         frank_2.set_fill(fill_color, opacity=0.75)
         self.play(
             self.camera.frame.animate.move_to(frank_2).set(
@@ -802,14 +931,18 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(Create(hull))
         self.play(self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(width=22))
         self.wait(1)
-        self.play(FadeIn(dot_approached))
         arrow = Arrow(
             Frank_2_points[4],
             [-8.711058823529418,3.236235294117641,0],
             color=colors.GOLD,
         )
         self.wait(1)
+        self.play(FadeIn(dot_approached))
+        self.wait(1)
         self.play(Create(arrow))
+        self.wait(1)
+        c = Circle(radius=0.5, arc_center=[-8.711058823529418,3.236235294117641,0], color=colors.ORANGE)
+        self.play(Create(c))
         while findFlip(Frank_2_points):
 
             # Create the polygon after the flip
@@ -831,12 +964,14 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                 width=5
             )
         )
-        c = Circle(radius=0.5, arc_center=Frank_2_points[4], color=colors.ORANGE)
-        self.play(Create(c))
         dot_approached_highlight = Dot([-8.711058823529418,3.236235294117641,0], color=colors.YELLOW_C)
         self.wait(1)
         self.play(FadeIn(dot_approached_highlight))
         self.play(FadeOut(dot_approached_highlight))
+        self.wait(2)
+        self.play(self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(width=22))
+        self.wait(1)
+        self.play(Uncreate(frank_2, arrow),FadeOut(dot_start,dot_approached), Uncreate(c)) #For some mysterious reason c must be in a seperate Uncreate() for it to work
         self.wait(2)
 
 #class Image(Scene):  # type: ignore
