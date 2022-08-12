@@ -641,12 +641,12 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         dot_points = [Point(0, 0, 0), Point(-2, 1, 0), Point(-3, -1.5, 0)]
         dots = VGroup(*[Dot(x, color=colors.GREEN) for x in dot_points])
         self.play(FadeIn(dots))
-
+        DELTA = 1
         arrows = VGroup(*[
             Arrow(
                     dot_points[x], 
                     [
-                        dot_points[x].x+dot_points[x].distanceFrom(Frank_2_convex_points[0]),
+                        dot_points[x].x+dot_points[x].distanceFrom(Frank_2_convex_points[DELTA]),
                         dot_points[x].y,
                         0
                     ],
@@ -674,7 +674,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )
         circles = VGroup(*[
             Circle(
-                radius=x.distanceFrom(Frank_2_convex_points[0]),
+                radius=x.distanceFrom(Frank_2_convex_points[DELTA]),
                 arc_center=x, 
                 color=colors.ORANGE
             )
@@ -688,18 +688,19 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                     Create(circles, lag_ratio=0)
                 )
         self.wait(2)
-        approached = [Dot(Frank_2_convex_points[0], color=colors.TEAL)]
+        approached = [Dot(Frank_2_convex_points[DELTA], color=colors.TEAL)]
         self.play(FadeIn(approached[-1]))
         self.wait(1)
         self.play(Uncreate(circles, lag_ratio=0))
         self.wait(1)
-        for i in range(1, len(Frank_2_points)):
-            approached.append(Dot(Frank_2_convex_points[i], color=colors.TEAL))
+        for i in range(DELTA+1, len(Frank_2_points)+DELTA):
+            print(i)
+            approached.append(Dot(Frank_2_convex_points[i % len(Frank_2_convex_points)], color=colors.TEAL))
             arrowsb = VGroup(*[
                 Arrow(
                         dot_points[x], 
                         [
-                            dot_points[x].x+dot_points[x].distanceFrom(Frank_2_convex_points[i]),
+                            dot_points[x].x+dot_points[x].distanceFrom(Frank_2_convex_points[i%len(Frank_2_convex_points)]),
                             dot_points[x].y,
                             0
                         ],
@@ -709,7 +710,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             )
             circles = VGroup(*[
                 Circle(
-                    radius=x.distanceFrom(Frank_2_convex_points[i]),
+                    radius=x.distanceFrom(Frank_2_convex_points[i%len(Frank_2_convex_points)]),
                     arc_center=x, 
                     color=colors.ORANGE
                 )
@@ -726,6 +727,11 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.wait(1)
         self.play(Create(frank_2_convex))
         self.play(Uncreate(arrows), FadeOut(dots), *[FadeOut(x) for x in approached])
+        self.play(
+            self.camera.frame.animate.move_to(frank_2).set(
+                width=getCameraWidth(Frank_2_convex_points)
+            )
+        )
         self.wait(1)
         self.play(Uncreate(frank_2), Uncreate(frank_2_convex))
         
