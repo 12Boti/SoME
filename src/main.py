@@ -325,6 +325,8 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(self.camera.frame.animate.move_to([0, 0, 0.0]).set(width=128 / 9))
 
         # --- Flip Frank, killing him ---
+        axis = Line(Frank_points[0], Frank_points[4], color=colors.RED)
+        self.play(Create(axis))
         flip(Frank_points[0], Frank_points[4], Frank_points)  # Flip randonly
 
         self_intersect = Polygon(
@@ -333,6 +335,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self_intersect.set_fill(fill_color, opacity=0.75)
         self.play(Transform(concave, self_intersect))  # Execute flip
         self.wait(0.5)
+        self.play(Uncreate(axis))
         dashed = generateDashedLines(
             Frank_points
         )  # Generate dashed outline of the filpped polygon
