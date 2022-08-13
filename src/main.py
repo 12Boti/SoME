@@ -468,18 +468,13 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             )
         )
         self.wait(2)
-        prev_lines = VMobject(color=highlight_color).set_points_as_corners(
-            [
-                Frank_2_points[0],
-                Frank_2_points[9],
-                Frank_2_points[8],
-            ]
-        )
+        prev_line_1 = Line(Frank_2_points[9], Frank_2_points[0], color = colors.LIGHT_PINK)
+        prev_line_2 = Line(Frank_2_points[8], Frank_2_points[9], color = colors.PURE_GREEN)
         point_before_flip = deepcopy(Frank_2_points[9])
         flip(Frank_2_points[8], Frank_2_points[0], Frank_2_points)
         flipped = Polygon(*Frank_2_points, color=stroke_color)
         flipped.set_fill(fill_color, opacity=0.75)
-        self.play(Create(prev_lines))
+        self.play(Create(prev_line_1), Create(prev_line_2))
         self.wait(1)
         self.play(Transform(concave, flipped))
         arrow_a = CurvedArrow(
@@ -493,13 +488,20 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             radius=-1,
             color=highlight_color,
         )
+        flipped_line_1 = Line(Frank_2_points[0], Frank_2_points[9], color = colors.LIGHT_PINK)
+        flipped_line_2 = Line(Frank_2_points[8], Frank_2_points[9], color = colors.PURE_GREEN)
         self.play(Create(arrow_a))
+        self.play(Create(flipped_line_1))
         self.play(Create(arrow_b))
+        self.play(Create(flipped_line_2))
         self.wait(2)
         self.play(
-            Uncreate(prev_lines),
+            Uncreate(prev_line_1),
+            Uncreate(prev_line_2),
             Uncreate(arrow_a),
             Uncreate(arrow_b),
+            Uncreate(flipped_line_1),
+            Uncreate(flipped_line_2),
             Restore(concave),
         )
         self.wait(2)
@@ -526,8 +528,8 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.wait(2)
         intersect_point = Point(1.56, 0.88, 0)
         # create the entire line as one object to make the create animation smooth
-        full_line = Line(inner_point, Frank_2_points[9], color=colors.GREEN)
-        other_line = Line(inner_point, point_before_flip, color=colors.YELLOW)
+        full_line = Line(inner_point, Frank_2_points[9], color=colors.PURE_GREEN)
+        other_line = Line(inner_point, point_before_flip, color=colors.LIGHT_PINK)
         inner_dot2 = Dot(inner_point, color=colors.GREEN)
         prev_dot2 = Dot(point_before_flip, color=colors.RED)
         next_dot2 = Dot(Frank_2_points[9], color=colors.RED)
@@ -543,16 +545,16 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             FadeIn(prev_dot2, run_time=0.00000000000000000000001),
             FadeIn(next_dot2, run_time=0.00000000000000000000001),
         )
-        line_half_1 = Line(inner_point, intersect_point, color=colors.GREEN)
-        line_half_2 = Line(intersect_point, Frank_2_points[9], color=colors.GREEN)
+        line_half_1 = Line(inner_point, intersect_point, color=colors.PURE_GREEN)
+        line_half_2 = Line(intersect_point, Frank_2_points[9], color=colors.PURE_GREEN)
         self.add(line_half_1, line_half_2)
         self.remove(full_line)
         self.remove(next_dot2)
         self.add(next_dot2)
         self.wait(1)
-        line_half_2_next = Line(intersect_point, point_before_flip, color=colors.GREEN)
+        line_half_2_next = Line(intersect_point, point_before_flip, color=colors.PURE_GREEN)
         line_half_2_dashed = DashedLine(
-            intersect_point, Frank_2_points[9], color=colors.GREEN
+            intersect_point, Frank_2_points[9], color=colors.PURE_GREEN
         )
         self.add(line_half_2_dashed)
         inner_dot3 = Dot(inner_point, color=colors.GREEN)
@@ -848,17 +850,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         text2.move_to([-3 + 0.2, 0.35, 0])
         text3 = Text("r₁", color=colors.ORANGE).scale(0.5)
         text3.move_to([3 + 0.2, -1 + 0.35, 0])
-        self.play(
-            Create(r1),
-            Create(r2),
-            Create(r3),
-        )
-        self.wait(1)
-        self.play(
-            Write(text1),
-            Write(text2),
-            Write(text3),
-        )
         angel = Angle(
             Line(dot_points[0], dot_points[1]),
             Line(dot_points[1], dot_points[2]),
@@ -923,12 +914,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )
         self.wait(2)
         self.play(
-            Unwrite(text1),
-            Unwrite(text2),
-            Unwrite(text3),
-            Uncreate(r1),
-            Uncreate(r2),
-            Uncreate(r3),
             FadeOut(middots),
             Create(angel),
             Write(angel_degrees),
@@ -1062,6 +1047,22 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )
         self.wait(2)
         self.play(
+            Create(r1),
+            Create(r2),
+            Create(r3),
+        )
+        self.play(
+            Write(text1),
+            Write(text2),
+            Write(text3),
+        )
+        self.play(
+            Unwrite(text1),
+            Unwrite(text2),
+            Unwrite(text3),
+            Uncreate(r1),
+            Uncreate(r2),
+            Uncreate(r3),
             Uncreate(segments),
             Uncreate(angel),
             Uncreate(line),
