@@ -55,6 +55,7 @@
         nativeBuildInputs = [
           python
           pkgs.ffmpeg
+          pkgs.texlive.combined.scheme-full
         ];
         installPhase = ''
           scene=CreateConcavePolygon
