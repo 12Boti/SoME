@@ -3,7 +3,6 @@ import random
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import total_ordering
-from turtle import title
 from typing import Sequence, Union, overload
 
 import manim  # type: ignore
@@ -20,7 +19,6 @@ from manim import (
     Dot,
     FadeIn,
     FadeOut,
-    ImageMobject,
     Integer,
     Line,
     MovingCameraScene,
@@ -28,7 +26,6 @@ from manim import (
     ReplacementTransform,
     Restore,
     Rotate,
-    Scene,
     ShowPassingFlash,
     Text,
     Transform,
@@ -50,7 +47,10 @@ class Point(Sequence[float]):
     z: float
 
     def distanceFrom(self, p) -> float:
-        return math.sqrt((self.x - p.x)**2 + (self.y - p.y)**2 + (self.z - p.z)**2)
+        return math.sqrt(
+            (self.x - p.x) ** 2 + (self.y - p.y) ** 2 + (self.z - p.z) ** 2
+        )
+
     @overload
     def __getitem__(self, i: int) -> float:
         pass
@@ -254,9 +254,14 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         with register_font("./assets/font/NewRocker-Regular.ttf"):
             title1 = Text("Convexification:", font="New Rocker", font_size=90)
         with register_font("./assets/font/NewRocker-Regular.ttf"):
-            title2 = Text("The Hungarian Strategy",t2c={'Hun':'#CE2939', 'ian':'#477050'} , font="New Rocker", font_size=90)
-        title1.move_to([0,0.7,0])
-        title2.move_to([0,-0.7,0])
+            title2 = Text(
+                "The Hungarian Strategy",
+                t2c={"Hun": "#CE2939", "ian": "#477050"},
+                font="New Rocker",
+                font_size=90,
+            )
+        title1.move_to([0, 0.7, 0])
+        title2.move_to([0, -0.7, 0])
         self.play(Write(title1, run_time=1), Write(title2, run_time=1))
         self.wait(2)
         self.play(Unwrite(title1, run_time=0.8), Unwrite(title2, run_time=0.8))
@@ -293,9 +298,9 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         text0 = Text("Simple polygon:", color=colors.BLUE)
         text1 = Text("- has no holes")
         text2 = Text("- non self-intesecting")
-        text0.move_to([-5,3,0]).scale(0.7)
-        text1.move_to([-5.6,2.5,0]).scale(0.5)
-        text2.move_to([-5,2,0]).scale(0.5)
+        text0.move_to([-5, 3, 0]).scale(0.7)
+        text1.move_to([-5.6, 2.5, 0]).scale(0.5)
+        text2.move_to([-5, 2, 0]).scale(0.5)
         self.play(Write(text0), Write(text1), Write(text2))
         self.wait(1)
         self.play(Unwrite(text0), Unwrite(text1), Unwrite(text2))
@@ -315,8 +320,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(Create(dashed))
         dot = Dot(Frank_points[8], color=colors.RED)
         self.add(dot)
-        # self.play(Rotate(dashed, angle=0, run_time=0)) #To do fix: wtf Calling this function somehow reverses the animation of uncreate. (As it turns out each dash uncreates in the wrong direction.)
-        # self.play(Uncreate(axis, run_time=0))
         axis2 = Line(Frank_points[0], Frank_points[7], color=colors.RED)
         flipped = Polygon(*Frank_points, color=stroke_color)
         flipped.set_fill(fill_color, opacity=0.75)
@@ -410,7 +413,9 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         hull = Polygon(*hull_points)
         hull.set_stroke(hull_color)
         self.play(Create(band))
-        self.play(Transform(band, hull), rate_func=manim.rate_functions.ease_out_elastic)
+        self.play(
+            Transform(band, hull), rate_func=manim.rate_functions.ease_out_elastic
+        )
         self.wait(2)
         self.play(self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(width=22))
         self.remove(band)
@@ -527,7 +532,8 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         prev_dot2 = Dot(point_before_flip, color=colors.RED)
         next_dot2 = Dot(Frank_2_points[9], color=colors.RED)
         self.play(
-            Create(full_line), Create(other_line),
+            Create(full_line),
+            Create(other_line),
             FadeOut(
                 inner_dot,
                 prev_dot,
@@ -536,7 +542,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             FadeIn(inner_dot2, run_time=0.00000000000000000000001),
             FadeIn(prev_dot2, run_time=0.00000000000000000000001),
             FadeIn(next_dot2, run_time=0.00000000000000000000001),
-            )
+        )
         line_half_1 = Line(inner_point, intersect_point, color=colors.GREEN)
         line_half_2 = Line(intersect_point, Frank_2_points[9], color=colors.GREEN)
         self.add(line_half_1, line_half_2)
@@ -595,14 +601,12 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                 other_line,
                 other_line_copy,
                 inequality,
-                #inner_dot3,
                 prev_dot3,
                 next_dot3,
                 axis,
             ),
         )
         self.wait(2)
-        #self.play(Uncreate(concave))
 
         # --- show vertex can't get farther than perimeter/2 ---
         Frank_2_extended_points = [
@@ -620,34 +624,41 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         frank_2_extended = Polygon(*Frank_2_extended_points, color=stroke_color)
         frank_2_extended.set_fill(fill_color, opacity=0.75)
         segment = Line(start=inner_point, end=Frank_2_points[4], color=colors.ORANGE)
-        segment2 = Line(start=inner_point, end=Frank_2_extended_points[4], color=colors.ORANGE)
-        dot = Dot(Frank_2_points[4], color= colors.GREEN)
-        dot2 = Dot(Frank_2_extended_points[4], color= colors.GREEN)
+        segment2 = Line(
+            start=inner_point, end=Frank_2_extended_points[4], color=colors.ORANGE
+        )
+        dot = Dot(Frank_2_points[4], color=colors.GREEN)
+        dot2 = Dot(Frank_2_extended_points[4], color=colors.GREEN)
         inner_dot4 = Dot(inner_point, color=colors.GREEN)
-        self.play(Create(segment), FadeIn(dot), FadeIn(inner_dot4, run_time=0.00000000000000000000001),)
+        self.play(
+            Create(segment),
+            FadeIn(dot),
+            FadeIn(inner_dot4, run_time=0.00000000000000000000001),
+        )
         self.play(self.camera.frame.animate.move_to([-4.8, 0.2, 0.0]).set(width=18))
         self.play(
-            Transform(concave, frank_2_extended), 
-            Transform(dot, dot2), 
-            Transform(segment, segment2),  
+            Transform(concave, frank_2_extended),
+            Transform(dot, dot2),
+            Transform(segment, segment2),
         )
         self.remove(inner_dot3)
         self.wait(2)
         self.play(
             ShowPassingFlash(
                 VMobject(color=highlight_color).set_points_as_corners(
-                [
-                    Frank_2_extended_points[4],
-                    Frank_2_extended_points[5],
-                    Frank_2_extended_points[6],
-                    Frank_2_extended_points[7],
-                    Frank_2_extended_points[8],
-                ]),
+                    [
+                        Frank_2_extended_points[4],
+                        Frank_2_extended_points[5],
+                        Frank_2_extended_points[6],
+                        Frank_2_extended_points[7],
+                        Frank_2_extended_points[8],
+                    ]
+                ),
                 run_time=2,
                 time_width=1,
             )
         )
-        self.play(Uncreate(segment), FadeOut(dot,inner_dot4))
+        self.play(Uncreate(segment), FadeOut(dot, inner_dot4))
         # --- show limit exits ---
         Frank_2_points = [
             Point(0, 4, 0),
@@ -676,17 +687,20 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         dots = VGroup(*[Dot(x, color=colors.GREEN) for x in dot_points])
         self.play(FadeIn(dots))
         DELTA = 1
-        arrows = VGroup(*[
-            Arrow(
-                    dot_points[x], 
+        arrows = VGroup(
+            *[
+                Arrow(
+                    dot_points[x],
                     [
-                        dot_points[x].x+dot_points[x].distanceFrom(Frank_2_convex_points[DELTA]),
+                        dot_points[x].x
+                        + dot_points[x].distanceFrom(Frank_2_convex_points[DELTA]),
                         dot_points[x].y,
-                        0
+                        0,
                     ],
-                    color=colors.ORANGE
-                ) 
-            for x in range(len(dot_points))]
+                    color=colors.ORANGE,
+                )
+                for x in range(len(dot_points))
+            ]
         )
         text0 = (
             Text("d₁", color=colors.ORANGE)
@@ -706,55 +720,81 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             .next_to(arrows[2])
             .shift([-0.2, 0, 0])
         )
-        circles = VGroup(*[
-            Circle(
-                radius=x.distanceFrom(Frank_2_convex_points[DELTA]),
-                arc_center=x, 
-                color=colors.ORANGE
-            )
-            for x in dot_points
-        ])
-        self.play(Create(arrows, lag_ratio=0), Write(text0), Write(text1), Write(text2)) # I have no clue why the texts don't work in one Write(), but I'm too tired to care at this point.
+        circles = VGroup(
+            *[
+                Circle(
+                    radius=x.distanceFrom(Frank_2_convex_points[DELTA]),
+                    arc_center=x,
+                    color=colors.ORANGE,
+                )
+                for x in dot_points
+            ]
+        )
+        self.play(
+            Create(arrows, lag_ratio=0), Write(text0), Write(text1), Write(text2)
+        )  # I have no clue why the texts don't work in one Write(), but I'm too tired to care at this point.
         self.wait(2)
         self.play(Unwrite(text0), Unwrite(text1), Unwrite(text2))
         self.play(
-                    *[Rotate(arrows[x], angle=2*PI, about_point=dot_points[x]) for x in range(3)], 
-                    Create(circles, lag_ratio=0)
-                )
+            *[
+                Rotate(arrows[x], angle=2 * PI, about_point=dot_points[x])
+                for x in range(3)
+            ],
+            Create(circles, lag_ratio=0),
+        )
         self.wait(2)
         approached = [Dot(Frank_2_convex_points[DELTA], color=colors.TEAL)]
         self.play(FadeIn(approached[-1]))
         self.wait(1)
         self.play(Uncreate(circles, lag_ratio=0))
         self.wait(1)
-        for i in range(DELTA+1, len(Frank_2_points)+DELTA):
-            approached.append(Dot(Frank_2_convex_points[i % len(Frank_2_convex_points)], color=colors.TEAL))
-            arrowsb = VGroup(*[
-                Arrow(
-                        dot_points[x], 
-                        [
-                            dot_points[x].x+dot_points[x].distanceFrom(Frank_2_convex_points[i%len(Frank_2_convex_points)]),
-                            dot_points[x].y,
-                            0
-                        ],
-                        color=colors.ORANGE
-                    )
-                for x in range(3)]
-            )
-            circles = VGroup(*[
-                Circle(
-                    radius=x.distanceFrom(Frank_2_convex_points[i%len(Frank_2_convex_points)]),
-                    arc_center=x, 
-                    color=colors.ORANGE
+        for i in range(DELTA + 1, len(Frank_2_points) + DELTA):
+            approached.append(
+                Dot(
+                    Frank_2_convex_points[i % len(Frank_2_convex_points)],
+                    color=colors.TEAL,
                 )
-                for x in dot_points
-            ])
-            
+            )
+            arrowsb = VGroup(
+                *[
+                    Arrow(
+                        dot_points[x],
+                        [
+                            dot_points[x].x
+                            + dot_points[x].distanceFrom(
+                                Frank_2_convex_points[i % len(Frank_2_convex_points)]
+                            ),
+                            dot_points[x].y,
+                            0,
+                        ],
+                        color=colors.ORANGE,
+                    )
+                    for x in range(3)
+                ]
+            )
+            circles = VGroup(
+                *[
+                    Circle(
+                        radius=x.distanceFrom(
+                            Frank_2_convex_points[i % len(Frank_2_convex_points)]
+                        ),
+                        arc_center=x,
+                        color=colors.ORANGE,
+                    )
+                    for x in dot_points
+                ]
+            )
+
             self.play(Transform(arrows, arrowsb, run_time=0.3))
             self.play(
-                    *[Rotate(arrows[x], angle=2*PI, about_point=dot_points[x], run_time=0.7) for x in range(3)], 
-                    Create(circles, lag_ratio=0, run_time=0.7)
-                )
+                *[
+                    Rotate(
+                        arrows[x], angle=2 * PI, about_point=dot_points[x], run_time=0.7
+                    )
+                    for x in range(3)
+                ],
+                Create(circles, lag_ratio=0, run_time=0.7),
+            )
             self.play(FadeIn(approached[-1], run_time=0.4))
             self.play(Uncreate(circles, lag_ratio=0, run_time=0.5))
         self.wait(1)
@@ -767,7 +807,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         )
         self.wait(1)
         self.play(Uncreate(frank_2), Uncreate(frank_2_convex_dashed))
-        
 
         # --- convexity tolerance ---
         self.play(self.camera.frame.animate.move_to([0, 0, 0]).set(width=128 / 9))
@@ -777,12 +816,8 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.wait(1)
         self.play(Unwrite(a, run_time=0.5))
         dot_points = [Point(-3, 0, 0), Point(0, 1, 0), Point(3, -1, 0)]
-        dots = VGroup(
-            *[Dot(x) for x in dot_points]
-        )
-        segments = VMobject(color=colors.BLUE_D).set_points_as_corners(
-            [x for x in dot_points]
-        )
+        dots = VGroup(*[Dot(x) for x in dot_points])
+        segments = VMobject(color=colors.BLUE_D).set_points_as_corners(list(dot_points))
         self.play(FadeIn(dots))
         self.bring_to_back(segments)
         self.play(Create(segments))
@@ -801,7 +836,9 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Circle(radius=0.7397954428741, arc_center=[0, 1, 0], color=colors.GREEN_E),
             Circle(radius=0.7397954428741, arc_center=[3, -1, 0], color=colors.GREEN_E),
         )
-        self.play(*[Create(x) for x in circle_group]) #Must create angel here! If you try to create it later, then it will magically appear with these circles.
+        self.play(
+            *[Create(x) for x in circle_group]
+        )  # Must create angel here! If you try to create it later, then it will magically appear with these circles.
         r1 = Line([-3, 0, 0], [-3, 0.7397954428741, 0], color=colors.ORANGE)
         r2 = Line([0, 1, 0], [0, 1.7397954428741, 0], color=colors.ORANGE)
         r3 = Line([3, -1, 0], [3, -1 + 0.7397954428741, 0], color=colors.ORANGE)
@@ -822,19 +859,68 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Write(text2),
             Write(text3),
         )
-        angel = Angle(Line(dot_points[0], dot_points[1]), Line(dot_points[1], dot_points[2]), radius=1.3, quadrant=(-1,1), color=colors.RED)
-        dot_product = (dot_points[0].x - dot_points[1].x)*(dot_points[2].x - dot_points[1].x) + (dot_points[0].y - dot_points[1].y)*(dot_points[2].y - dot_points[1].y)
-        length1 = math.sqrt((dot_points[0].x - dot_points[1].x)**2 + (dot_points[0].y - dot_points[1].y)**2)
-        length2 = math.sqrt((dot_points[2].x - dot_points[1].x)**2 + (dot_points[2].y - dot_points[1].y)**2)
-        tracker = ValueTracker(math.acos(dot_product/(length1*length2))*(180/PI))
-        base_v_x = (dot_points[0].x - dot_points[1].x)/length1 + (dot_points[2].x - dot_points[1].x)/length2
-        base_v_y = (dot_points[0].y - dot_points[1].y)/length1 + (dot_points[2].y - dot_points[1].y)/length2
+        angel = Angle(
+            Line(dot_points[0], dot_points[1]),
+            Line(dot_points[1], dot_points[2]),
+            radius=1.3,
+            quadrant=(-1, 1),
+            color=colors.RED,
+        )
+        dot_product = (dot_points[0].x - dot_points[1].x) * (
+            dot_points[2].x - dot_points[1].x
+        ) + (dot_points[0].y - dot_points[1].y) * (dot_points[2].y - dot_points[1].y)
+        length1 = math.sqrt(
+            (dot_points[0].x - dot_points[1].x) ** 2
+            + (dot_points[0].y - dot_points[1].y) ** 2
+        )
+        length2 = math.sqrt(
+            (dot_points[2].x - dot_points[1].x) ** 2
+            + (dot_points[2].y - dot_points[1].y) ** 2
+        )
+        tracker = ValueTracker(
+            math.acos(dot_product / (length1 * length2)) * (180 / PI)
+        )
+        base_v_x = (dot_points[0].x - dot_points[1].x) / length1 + (
+            dot_points[2].x - dot_points[1].x
+        ) / length2
+        base_v_y = (dot_points[0].y - dot_points[1].y) / length1 + (
+            dot_points[2].y - dot_points[1].y
+        ) / length2
         base_v_length = math.sqrt(base_v_x**2 + base_v_y**2)
-        angel_degrees_pos_x_tracker = ValueTracker(base_v_x/base_v_length/1.5 + dot_points[1].x)
-        angel_degrees_pos_y_tracker = ValueTracker(base_v_y/base_v_length/1.5 + dot_points[1].y)
-        
-        angel_degrees = manim.always_redraw(lambda: Integer(color=colors.RED).set_value(tracker.get_value()).move_to([angel_degrees_pos_x_tracker.get_value(), angel_degrees_pos_y_tracker.get_value(), 0]))
-        degree_notation = manim.always_redraw(lambda: Text("°", color=colors.RED).next_to(Integer(color=colors.RED).set_value(tracker.get_value()).move_to([angel_degrees_pos_x_tracker.get_value(), angel_degrees_pos_y_tracker.get_value(), 0])).shift([-0.2,0.2,0]).scale(0.7))
+        angel_degrees_pos_x_tracker = ValueTracker(
+            base_v_x / base_v_length / 1.5 + dot_points[1].x
+        )
+        angel_degrees_pos_y_tracker = ValueTracker(
+            base_v_y / base_v_length / 1.5 + dot_points[1].y
+        )
+
+        angel_degrees = manim.always_redraw(
+            lambda: Integer(color=colors.RED)
+            .set_value(tracker.get_value())
+            .move_to(
+                [
+                    angel_degrees_pos_x_tracker.get_value(),
+                    angel_degrees_pos_y_tracker.get_value(),
+                    0,
+                ]
+            )
+        )
+        degree_notation = manim.always_redraw(
+            lambda: Text("°", color=colors.RED)
+            .next_to(
+                Integer(color=colors.RED)
+                .set_value(tracker.get_value())
+                .move_to(
+                    [
+                        angel_degrees_pos_x_tracker.get_value(),
+                        angel_degrees_pos_y_tracker.get_value(),
+                        0,
+                    ]
+                )
+            )
+            .shift([-0.2, 0.2, 0])
+            .scale(0.7)
+        )
         self.wait(2)
         self.play(
             Unwrite(text1),
@@ -860,63 +946,119 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                     Point(
                         p.x + epsilon * math.cos(angle) * length,
                         p.y + epsilon * math.sin(angle) * length,
-                        0
+                        0,
                     )
                 )
-            dot_product = (wiggled_points[0].x - wiggled_points[1].x)*(wiggled_points[2].x - wiggled_points[1].x) + (wiggled_points[0].y - wiggled_points[1].y)*(wiggled_points[2].y - wiggled_points[1].y)
-            length1 = math.sqrt((wiggled_points[0].x - wiggled_points[1].x)**2 + (wiggled_points[0].y - wiggled_points[1].y)**2)
-            length2 = math.sqrt((wiggled_points[2].x - wiggled_points[1].x)**2 + (wiggled_points[2].y - wiggled_points[1].y)**2)
-            wiggled = VMobject(color=colors.BLUE_D).set_points_as_corners([x for x in wiggled_points])
+            dot_product = (wiggled_points[0].x - wiggled_points[1].x) * (
+                wiggled_points[2].x - wiggled_points[1].x
+            ) + (wiggled_points[0].y - wiggled_points[1].y) * (
+                wiggled_points[2].y - wiggled_points[1].y
+            )
+            length1 = math.sqrt(
+                (wiggled_points[0].x - wiggled_points[1].x) ** 2
+                + (wiggled_points[0].y - wiggled_points[1].y) ** 2
+            )
+            length2 = math.sqrt(
+                (wiggled_points[2].x - wiggled_points[1].x) ** 2
+                + (wiggled_points[2].y - wiggled_points[1].y) ** 2
+            )
+            wiggled = VMobject(color=colors.BLUE_D).set_points_as_corners(
+                list(wiggled_points)
+            )
             wiggled_dots = VGroup(*[Dot(x) for x in wiggled_points])
-            wiggled_angel = Angle(Line(wiggled_points[0], wiggled_points[1]), Line(wiggled_points[1], wiggled_points[2]), radius=1.3, quadrant=(-1,1), color=colors.RED)
-            base_v_x = (wiggled_points[0].x - wiggled_points[1].x)/length1 + (wiggled_points[2].x - wiggled_points[1].x)/length2
-            base_v_y = (wiggled_points[0].y - wiggled_points[1].y)/length1 + (wiggled_points[2].y - wiggled_points[1].y)/length2
+            wiggled_angel = Angle(
+                Line(wiggled_points[0], wiggled_points[1]),
+                Line(wiggled_points[1], wiggled_points[2]),
+                radius=1.3,
+                quadrant=(-1, 1),
+                color=colors.RED,
+            )
+            base_v_x = (wiggled_points[0].x - wiggled_points[1].x) / length1 + (
+                wiggled_points[2].x - wiggled_points[1].x
+            ) / length2
+            base_v_y = (wiggled_points[0].y - wiggled_points[1].y) / length1 + (
+                wiggled_points[2].y - wiggled_points[1].y
+            ) / length2
             base_v_length = math.sqrt(base_v_x**2 + base_v_y**2)
             self.play(
-                Transform(segments, wiggled, run_time=0.7), 
-                Transform(dots, wiggled_dots, run_time=0.7), 
-                Transform(angel, wiggled_angel, run_time=0.7), 
-                tracker.animate.set_value(math.acos(dot_product/(length1*length2)) * (180/PI)),
-                angel_degrees_pos_x_tracker.animate.set_value(base_v_x/base_v_length/1.5 + wiggled_points[1].x),
-                angel_degrees_pos_y_tracker.animate.set_value(base_v_y/base_v_length/1.5 + wiggled_points[1].y),
-                run_time=0.7
+                Transform(segments, wiggled, run_time=0.7),
+                Transform(dots, wiggled_dots, run_time=0.7),
+                Transform(angel, wiggled_angel, run_time=0.7),
+                tracker.animate.set_value(
+                    math.acos(dot_product / (length1 * length2)) * (180 / PI)
+                ),
+                angel_degrees_pos_x_tracker.animate.set_value(
+                    base_v_x / base_v_length / 1.5 + wiggled_points[1].x
+                ),
+                angel_degrees_pos_y_tracker.animate.set_value(
+                    base_v_y / base_v_length / 1.5 + wiggled_points[1].y
+                ),
+                run_time=0.7,
             )
-        #Show a case where it's close to 180°
+        # Show a case where it's close to 180°
         wiggled_points = []
         for p in dot_points:
-            angle = PI/2
+            angle = PI / 2
             length = 0.9
             wiggled_points.append(
                 Point(
                     p.x + epsilon * math.cos(angle) * length,
                     p.y + epsilon * math.sin(angle) * length,
-                    0
+                    0,
                 )
             )
-        angle = -PI/2
+        angle = -PI / 2
         length = 0.9
-        wiggled_points[1] =Point(
-                dot_points[1].x + epsilon * math.cos(angle) * length,
-                dot_points[1].y + epsilon * math.sin(angle) * length,
-                0
-            )
-        dot_product = (wiggled_points[0].x - wiggled_points[1].x)*(wiggled_points[2].x - wiggled_points[1].x) + (wiggled_points[0].y - wiggled_points[1].y)*(wiggled_points[2].y - wiggled_points[1].y)
-        length1 = math.sqrt((wiggled_points[0].x - wiggled_points[1].x)**2 + (wiggled_points[0].y - wiggled_points[1].y)**2)
-        length2 = math.sqrt((wiggled_points[2].x - wiggled_points[1].x)**2 + (wiggled_points[2].y - wiggled_points[1].y)**2)
-        wiggled = VMobject(color=colors.BLUE_D).set_points_as_corners([x for x in wiggled_points])
+        wiggled_points[1] = Point(
+            dot_points[1].x + epsilon * math.cos(angle) * length,
+            dot_points[1].y + epsilon * math.sin(angle) * length,
+            0,
+        )
+        dot_product = (wiggled_points[0].x - wiggled_points[1].x) * (
+            wiggled_points[2].x - wiggled_points[1].x
+        ) + (wiggled_points[0].y - wiggled_points[1].y) * (
+            wiggled_points[2].y - wiggled_points[1].y
+        )
+        length1 = math.sqrt(
+            (wiggled_points[0].x - wiggled_points[1].x) ** 2
+            + (wiggled_points[0].y - wiggled_points[1].y) ** 2
+        )
+        length2 = math.sqrt(
+            (wiggled_points[2].x - wiggled_points[1].x) ** 2
+            + (wiggled_points[2].y - wiggled_points[1].y) ** 2
+        )
+        wiggled = VMobject(color=colors.BLUE_D).set_points_as_corners(
+            list(wiggled_points)
+        )
         wiggled_dots = VGroup(*[Dot(x) for x in wiggled_points])
-        wiggled_angel = Angle(Line(wiggled_points[0], wiggled_points[1]), Line(wiggled_points[1], wiggled_points[2]), radius=1.3, quadrant=(-1,1), color=colors.RED)
-        base_v_x = (wiggled_points[0].x - wiggled_points[1].x)/length1 + (wiggled_points[2].x - wiggled_points[1].x)/length2
-        base_v_y = (wiggled_points[0].y - wiggled_points[1].y)/length1 + (wiggled_points[2].y - wiggled_points[1].y)/length2
+        wiggled_angel = Angle(
+            Line(wiggled_points[0], wiggled_points[1]),
+            Line(wiggled_points[1], wiggled_points[2]),
+            radius=1.3,
+            quadrant=(-1, 1),
+            color=colors.RED,
+        )
+        base_v_x = (wiggled_points[0].x - wiggled_points[1].x) / length1 + (
+            wiggled_points[2].x - wiggled_points[1].x
+        ) / length2
+        base_v_y = (wiggled_points[0].y - wiggled_points[1].y) / length1 + (
+            wiggled_points[2].y - wiggled_points[1].y
+        ) / length2
         base_v_length = math.sqrt(base_v_x**2 + base_v_y**2)
         self.play(
-            Transform(segments, wiggled, run_time=0.7), 
-            Transform(dots, wiggled_dots, run_time=0.7), 
-            Transform(angel, wiggled_angel, run_time=0.7), 
-            tracker.animate.set_value(math.acos(dot_product/(length1*length2)) * (180/PI)),
-            angel_degrees_pos_x_tracker.animate.set_value(base_v_x/base_v_length/1.5 + wiggled_points[1].x),
-            angel_degrees_pos_y_tracker.animate.set_value(base_v_y/base_v_length/1.5 + wiggled_points[1].y),
-            run_time=0.7
+            Transform(segments, wiggled, run_time=0.7),
+            Transform(dots, wiggled_dots, run_time=0.7),
+            Transform(angel, wiggled_angel, run_time=0.7),
+            tracker.animate.set_value(
+                math.acos(dot_product / (length1 * length2)) * (180 / PI)
+            ),
+            angel_degrees_pos_x_tracker.animate.set_value(
+                base_v_x / base_v_length / 1.5 + wiggled_points[1].x
+            ),
+            angel_degrees_pos_y_tracker.animate.set_value(
+                base_v_y / base_v_length / 1.5 + wiggled_points[1].y
+            ),
+            run_time=0.7,
         )
         self.wait(2)
         self.play(
@@ -1062,7 +1204,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                     Point(
                         p.x + epsilon * math.cos(angle),
                         p.y + epsilon * math.sin(angle),
-                        0
+                        0,
                     )
                 )
             wiggled = Polygon(*wiggled_points, color=stroke_color)
@@ -1071,7 +1213,6 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.wait(2)
         self.play(*[Uncreate(c) for c in circles], Uncreate(Eduard))
         self.wait(2)
-
 
         # --- Proof ---
         Frank_2_points = [
@@ -1096,15 +1237,20 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.play(Create(frank_2))
         self.wait(2)
         dot_start = Dot(Frank_2_points[4], color=colors.RED)
-        self.play(self.camera.frame.animate.move_to(Frank_2_points[4]).set(width=8), FadeIn(dot_start))
+        self.play(
+            self.camera.frame.animate.move_to(Frank_2_points[4]).set(width=8),
+            FadeIn(dot_start),
+        )
         hull_points = getHullPoints(Frank_2_points)
-        dot_approached = Dot([-8.711058823529418,3.236235294117641,0], color=colors.GREEN)
+        dot_approached = Dot(
+            [-8.711058823529418, 3.236235294117641, 0], color=colors.GREEN
+        )
         self.play(Create(hull))
         self.play(self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(width=22))
         self.wait(1)
         arrow = Arrow(
             Frank_2_points[4],
-            [-8.711058823529418,3.236235294117641,0],
+            [-8.711058823529418, 3.236235294117641, 0],
             color=colors.GOLD,
         )
         self.wait(1)
@@ -1112,7 +1258,11 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
         self.wait(1)
         self.play(Create(arrow))
         self.wait(1)
-        c = Circle(radius=0.5, arc_center=[-8.711058823529418,3.236235294117641,0], color=colors.ORANGE)
+        c = Circle(
+            radius=0.5,
+            arc_center=[-8.711058823529418, 3.236235294117641, 0],
+            color=colors.ORANGE,
+        )
         self.play(Create(c))
         while findFlip(Frank_2_points):
 
@@ -1122,7 +1272,7 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             dot_start_2 = Dot(Frank_2_points[4], color=colors.RED)
             arrow2 = Arrow(
                 Frank_2_points[4],
-                [-8.711058823529418,3.236235294117641,0],
+                [-8.711058823529418, 3.236235294117641, 0],
                 color=colors.GOLD,
             )
             self.play(
@@ -1130,25 +1280,17 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
                 Transform(dot_start, dot_start_2),
                 Transform(arrow, arrow2),
             )
-        self.play(
-            self.camera.frame.animate.move_to(Frank_2_points[4]).set(
-                width=5
-            )
+        self.play(self.camera.frame.animate.move_to(Frank_2_points[4]).set(width=5))
+        dot_approached_highlight = Dot(
+            [-8.711058823529418, 3.236235294117641, 0], color=colors.YELLOW_C
         )
-        dot_approached_highlight = Dot([-8.711058823529418,3.236235294117641,0], color=colors.YELLOW_C)
         self.wait(1)
         self.play(FadeIn(dot_approached_highlight))
         self.play(FadeOut(dot_approached_highlight))
         self.wait(2)
         self.play(self.camera.frame.animate.move_to([-3.8, 2.2, 0.0]).set(width=22))
         self.wait(1)
-        self.play(Uncreate(frank_2, arrow),FadeOut(dot_start,dot_approached), Uncreate(c)) #For some mysterious reason c must be in a seperate Uncreate() for it to work
+        self.play(
+            Uncreate(frank_2, arrow), FadeOut(dot_start, dot_approached), Uncreate(c)
+        )  # For some mysterious reason c must be in a seperate Uncreate() for it to work
         self.wait(2)
-
-#class Image(Scene):  # type: ignore
-#    def construct(self) -> None:
-#
-#        image = ImageMobject(r"D:\Sebi\Árpád\matek\SoME\erdos.jpg")
-#        image.height = 10
-#        self.play(FadeIn(image))
-#        self.wait(5)
