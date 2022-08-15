@@ -296,14 +296,16 @@ class CreateConcavePolygon(MovingCameraScene):  # type: ignore
             Point(3, 2.5, 0),
         ]
         text0 = Text("Simple polygon:", color=colors.BLUE)
-        text1 = Text("- has no holes")
-        text2 = Text("- non self-intesecting")
+        text1 = Text("has no holes")
+        text2 = Text("AND")
+        text3 = Text("non self-intersecting")
         text0.move_to([-5, 3, 0]).scale(0.7)
-        text1.move_to([-5.6, 2.5, 0]).scale(0.5)
+        text1.move_to([-5, 2.5, 0]).scale(0.5)
         text2.move_to([-5, 2, 0]).scale(0.5)
-        self.play(Write(text0), Write(text1), Write(text2))
+        text3.move_to([-5, 1.5, 0]).scale(0.5)
+        self.play(Write(text0), Write(text1), Write(text2), Write(text3))
         self.wait(1)
-        self.play(Unwrite(text0), Unwrite(text1), Unwrite(text2))
+        self.play(Unwrite(text0), Unwrite(text1), Unwrite(text2), Unwrite(text3))
         wrong_convex = Polygon(*convex_frank, color=stroke_color)
         wrong_convex.set_fill(fill_color, opacity=0.75)
         self.play(Transform(concave, wrong_convex))  # Frank -> Deformed Frank
